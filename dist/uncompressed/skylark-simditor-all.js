@@ -3857,7 +3857,7 @@ define('skylark-utils-dom/skylark',["skylark-langx/skylark"], function(skylark) 
 });
 
 define('skylark-utils-dom/dom',["./skylark"], function(skylark) {
-	return skylark.dom = {};
+	return skylark.dom = skylark.attach("utils.dom",{});
 });
 
 define('skylark-utils-dom/langx',[
@@ -5711,6 +5711,10 @@ define('skylark-utils-dom/finder',[
             if (root) {
                 if (rootIsSelector) {
                     if (matches(node, root)) {
+                        break;
+                    }
+                } else if (langx.isArrayLike(root)) {
+                    if (langx.inArray(node,root)) {
                         break;
                     }
                 } else if (node == root) {
@@ -8713,9 +8717,9 @@ define('skylark-utils-dom/query',[
                 params = slice.call(arguments);
             var result = this.map(function(idx, elem) {
                 // if (elem.nodeType == 1) {
-                if (elem.querySelector) {
+                //if (elem.querySelector) {
                     return func.apply(context, last ? [elem] : [elem, selector]);
-                }
+                //}
             });
             if (last && selector) {
                 return result.filter(selector);
@@ -8729,15 +8733,15 @@ define('skylark-utils-dom/query',[
         return function(util, selector) {
             var self = this,
                 params = slice.call(arguments);
-            if (selector === undefined) {
-                selector = util;
-                util = undefined;
-            }
+            //if (selector === undefined) { //TODO : needs confirm?
+            //    selector = util;
+            //    util = undefined;
+            //}
             var result = this.map(function(idx, elem) {
-                // if (elem.nodeType == 1) {
-                if (elem.querySelector) {
+                // if (elem.nodeType == 1) { // TODO
+                //if (elem.querySelector) {
                     return func.apply(context, last ? [elem, util] : [elem, selector, util]);
-                }
+                //}
             });
             if (last && selector) {
                 return result.filter(selector);
@@ -8752,7 +8756,7 @@ define('skylark-utils-dom/query',[
         return function() {
             var self = this,
                 params = slice.call(arguments);
-            this.each(function(idx) {
+            this.each(function(idx,node) {
                 func.apply(context, [this].concat(params));
             });
             return self;
@@ -9012,8 +9016,8 @@ define('skylark-utils-dom/query',[
             not: function(selector) {
                 var nodes = []
                 if (isFunction(selector) && selector.call !== undefined)
-                    this.each(function(idx) {
-                        if (!selector.call(this, idx)) nodes.push(this)
+                    this.each(function(idx,node) {
+                        if (!selector.call(this, idx,node)) nodes.push(this)
                     })
                 else {
                     var excludes = typeof selector == 'string' ? this.filter(selector) :
@@ -9096,9 +9100,9 @@ define('skylark-utils-dom/query',[
                     var dom = $(structure).get(0),
                         clone = dom.parentNode || this.length > 1
 
-                return this.each(function(index) {
+                return this.each(function(index,node) {
                     $(this).wrapAll(
-                        func ? structure.call(this, index) :
+                        func ? structure.call(this, index,node) :
                         clone ? dom.cloneNode(true) : dom
                     )
                 })
@@ -9119,10 +9123,10 @@ define('skylark-utils-dom/query',[
 
             wrapInner: function(wrappingElement) {
                 var func = isFunction(wrappingElement)
-                return this.each(function(index) {
+                return this.each(function(index,node) {
                     var self = $(this),
                         contents = self.contents(),
-                        dom = func ? wrappingElement.call(this, index) : wrappingElement
+                        dom = func ? wrappingElement.call(this, index,node) : wrappingElement
                     contents.length ? contents.wrapAll(dom) : self.append(dom)
                 })
             },
@@ -11100,7 +11104,7 @@ define('skylark-utils-dom/plugins',[
             }
 
             if (options) {
-                var args = slice.call(arguments,2);
+                var args = slice.call(arguments,1); //2
                 if (extfn) {
                     return extfn.apply(plugin,args);
                 } else {
