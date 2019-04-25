@@ -104,8 +104,9 @@ define([], function () {
         './Formatter',
         './Toolbar',
         './Indentation',
-        './Clipboard'
-    ], function ($, extend, Module, hotkeys, uploader, Util, InputManager, Selection, UndoManager, Keystroke, Formatter, Toolbar, Indentation, Clipboard) {
+        './Clipboard',
+        './i18n'
+    ], function ($, extend, Module, hotkeys, uploader, Util, InputManager, Selection, UndoManager, Keystroke, Formatter, Toolbar, Indentation, Clipboard, i18n) {
         var Simditor = Module.inherit({});
         Simditor.connect(Util);
         Simditor.connect(InputManager);
@@ -145,7 +146,7 @@ define([], function () {
                 throw new Error('simditor: simple-hotkeys is required.');
                 return;
             }
-            if (this.opts.upload && simpleUploader) {
+            if (this.opts.upload && uploader) {
                 uploadOpts = typeof this.opts.upload === 'object' ? this.opts.upload : {};
                 this.uploader = uploader(uploadOpts);
             }
@@ -295,6 +296,7 @@ define([], function () {
             $(window).off('.simditor-' + this.id);
             return this.off();
         };
+        Simditor.i18n = i18n;
         return Simditor;
     });
     function __isEmptyObject(obj) {

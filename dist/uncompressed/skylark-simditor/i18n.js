@@ -1,11 +1,8 @@
 define([
-  "skylark-jquery",
-  "./_extend",
-  "./Module",
-  "./Simditor"
-],function($,extend,Module,Simditor){ 
 
-    Simditor.i18n = {
+],function(){ 
+
+    return {
       'zh-CN': {
         'blockquote': '引用',
         'bold': '加粗文字',

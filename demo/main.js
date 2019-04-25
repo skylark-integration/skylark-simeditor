@@ -33,7 +33,7 @@ require([
       placeholder: '这里输入文字...',
       toolbar: toolbar,
       pasteImage: true,
-      defaultImage: 'assets/images/image.png',
+      defaultImage: './fork.png',
       upload: location.search === '?upload' ? {
         url: '/upload'
       } : false
