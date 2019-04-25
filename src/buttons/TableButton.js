@@ -1,11 +1,12 @@
 define([
+  "skylark-utils-dom/tables",
   "skylark-jquery",
   "../_extend",
   "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function(tables,$,extend,SimpleModule,Toolbar,Simditor,Button){ 
   var TableButton = Button.inherit({
 
    });
@@ -110,24 +111,6 @@ define([
     return this.editor.selection.setRangeAtEndOf($anotherTr.find('td, th').eq(index));
   };
 
-  TableButton.prototype._nextRow = function($tr) {
-    var $nextTr;
-    $nextTr = $tr.next('tr');
-    if ($nextTr.length < 1 && $tr.parent('thead').length > 0) {
-      $nextTr = $tr.parent('thead').next('tbody').find('tr:first');
-    }
-    return $nextTr;
-  };
-
-  TableButton.prototype._prevRow = function($tr) {
-    var $prevTr;
-    $prevTr = $tr.prev('tr');
-    if ($prevTr.length < 1 && $tr.parent('tbody').length > 0) {
-      $prevTr = $tr.parent('tbody').prev('thead').find('tr');
-    }
-    return $prevTr;
-  };
-
   TableButton.prototype._initResize = function() {
     var $editor;
     $editor = this.editor;
@@ -160,6 +143,7 @@ define([
       }
       return $resizeHandle.css('left', $td.position().left + $td.outerWidth() - 5).data('td', $td).data('col', $col).show();
     });
+
     $(document).on('mouseleave.simditor-table', '.simditor-table', function(e) {
       return $(this).find('.simditor-resize-handle').hide();
     });
@@ -232,48 +216,6 @@ define([
     })(this));
   };
 
-  TableButton.prototype.decorate = function($table) {
-    var $colgroup, $headRow, $resizeHandle, $tbody, $thead, $wrapper;
-    if ($table.parent('.simditor-table').length > 0) {
-      this.undecorate($table);
-    }
-    $table.wrap('<div class="simditor-table"></div>');
-    $wrapper = $table.parent('.simditor-table');
-    $colgroup = $table.find('colgroup');
-    if ($table.find('thead').length < 1) {
-      $thead = $('<thead />');
-      $headRow = $table.find('tr').first();
-      $thead.append($headRow);
-      this._changeCellTag($headRow, 'th');
-      $tbody = $table.find('tbody');
-      if ($tbody.length > 0) {
-        $tbody.before($thead);
-      } else {
-        $table.prepend($thead);
-      }
-    }
-    if ($colgroup.length < 1) {
-      $colgroup = $('<colgroup/>').prependTo($table);
-      $table.find('thead tr th').each(function(i, td) {
-        var $col;
-        return $col = $('<col/>').appendTo($colgroup);
-      });
-      this.refreshTableWidth($table);
-    }
-    $resizeHandle = $('<div />', {
-      "class": 'simditor-resize-handle',
-      contenteditable: 'false'
-    }).appendTo($wrapper);
-    return $table.parent();
-  };
-
-  TableButton.prototype.undecorate = function($table) {
-    if (!($table.parent('.simditor-table').length > 0)) {
-      return;
-    }
-    return $table.parent().replaceWith($table);
-  };
-
   TableButton.prototype.renderMenu = function() {
     var $table;
     $("<div class=\"menu-create-table\">\n</div>\n<div class=\"menu-edit-table\">\n  <ul>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteRow\">\n        <span>" + (this._t('deleteRow')) + "</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertRowAbove\">\n        <span>" + (this._t('insertRowAbove')) + " ( Ctrl + Alt + ↑ )</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertRowBelow\">\n        <span>" + (this._t('insertRowBelow')) + " ( Ctrl + Alt + ↓ )</span>\n      </a>\n    </li>\n    <li><span class=\"separator\"></span></li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteCol\">\n        <span>" + (this._t('deleteColumn')) + "</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertColLeft\">\n        <span>" + (this._t('insertColumnLeft')) + " ( Ctrl + Alt + ← )</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertColRight\">\n        <span>" + (this._t('insertColumnRight')) + " ( Ctrl + Alt + → )</span>\n      </a>\n    </li>\n    <li><span class=\"separator\"></span></li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteTable\">\n        <span>" + (this._t('deleteTable')) + "</span>\n      </a>\n    </li>\n  </ul>\n</div>").appendTo(this.menuWrapper);
@@ -326,37 +268,29 @@ define([
     })(this));
   };
 
+  TableButton.prototype.decorate = function($table) {
+    return $(tables.decorate($table[0],{
+      tableDecorate : 'simditor-table',
+      resizeHandle : 'simditor-resize-handle'
+    }));
+
+  };
+
+  TableButton.prototype.undecorate = function($table) {
+    return $(tables.undecorate($table[0],{
+      tableDecorate : 'simditor-table',
+      resizeHandle : 'simditor-resize-handle'
+    }));
+
+  };
+
+
   TableButton.prototype.createTable = function(row, col, phBr) {
-    var $table, $tbody, $td, $thead, $tr, c, k, l, r, ref, ref1;
-    $table = $('<table/>');
-    $thead = $('<thead/>').appendTo($table);
-    $tbody = $('<tbody/>').appendTo($table);
-    for (r = k = 0, ref = row; 0 <= ref ? k < ref : k > ref; r = 0 <= ref ? ++k : --k) {
-      $tr = $('<tr/>');
-      $tr.appendTo(r === 0 ? $thead : $tbody);
-      for (c = l = 0, ref1 = col; 0 <= ref1 ? l < ref1 : l > ref1; c = 0 <= ref1 ? ++l : --l) {
-        $td = $(r === 0 ? '<th/>' : '<td/>').appendTo($tr);
-        if (phBr) {
-          $td.append(this.editor.util.phBr);
-        }
-      }
-    }
-    return $table;
+    return $(tables.createTable(row,col,phBr ? this.editor.util.phBr : null));
   };
 
   TableButton.prototype.refreshTableWidth = function($table) {
-    return setTimeout((function(_this) {
-      return function() {
-        var cols, tableWidth;
-        tableWidth = $table.width();
-        cols = $table.find('col');
-        return $table.find('thead tr th').each(function(i, td) {
-          var $col;
-          $col = cols.eq(i);
-          return $col.attr('width', ($(td).outerWidth() / tableWidth * 100) + '%');
-        });
-      };
-    })(this), 0);
+    return table.refreshTableWidth($table[0]);
   };
 
   TableButton.prototype.setActive = function(active) {
@@ -370,123 +304,62 @@ define([
     }
   };
 
-  TableButton.prototype._changeCellTag = function($tr, tagName) {
-    return $tr.find('td, th').each(function(i, cell) {
-      var $cell;
-      $cell = $(cell);
-      return $cell.replaceWith("<" + tagName + ">" + ($cell.html()) + "</" + tagName + ">");
-    });
-  };
-
   TableButton.prototype.deleteRow = function($td) {
-    var $newTr, $tr, index;
-    $tr = $td.parent('tr');
-    if ($tr.closest('table').find('tr').length < 1) {
-      return this.deleteTable($td);
-    } else {
-      $newTr = this._nextRow($tr);
-      if (!($newTr.length > 0)) {
-        $newTr = this._prevRow($tr);
+    var self = this,
+        ret; 
+
+    tables.deleteRow($td[0],function(newTr,index){
+      if (newTr) {
+        ret = self.editor.selection.setRangeAtEndOf($(newTr).find('td, th').eq(index));
       }
-      index = $tr.find('td, th').index($td);
-      if ($tr.parent().is('thead')) {
-        $newTr.appendTo($tr.parent());
-        this._changeCellTag($newTr, 'th');
-      }
-      $tr.remove();
-      return this.editor.selection.setRangeAtEndOf($newTr.find('td, th').eq(index));
-    }
+    })
+
+    return ret;
   };
 
   TableButton.prototype.insertRow = function($td, direction) {
-    var $newTr, $table, $tr, cellTag, colNum, i, index, k, ref;
-    if (direction == null) {
-      direction = 'after';
-    }
-    $tr = $td.parent('tr');
-    $table = $tr.closest('table');
-    colNum = 0;
-    $table.find('tr').each(function(i, tr) {
-      return colNum = Math.max(colNum, $(tr).find('td').length);
-    });
-    index = $tr.find('td, th').index($td);
-    $newTr = $('<tr/>');
-    cellTag = 'td';
-    if (direction === 'after' && $tr.parent().is('thead')) {
-      $tr.parent().next('tbody').prepend($newTr);
-    } else if (direction === 'before' && $tr.parent().is('thead')) {
-      $tr.before($newTr);
-      $tr.parent().next('tbody').prepend($tr);
-      this._changeCellTag($tr, 'td');
-      cellTag = 'th';
-    } else {
-      $tr[direction]($newTr);
-    }
-    for (i = k = 1, ref = colNum; 1 <= ref ? k <= ref : k >= ref; i = 1 <= ref ? ++k : --k) {
-      $("<" + cellTag + "/>").append(this.editor.util.phBr).appendTo($newTr);
-    }
-    return this.editor.selection.setRangeAtStartOf($newTr.find('td, th').eq(index));
+    var self = this,
+        ret; 
+
+    tables.insertRow($td[0],direction,self.editor.util.phBr,function(newTr,index){
+      ret =  self.editor.selection.setRangeAtStartOf($(newTr).find('td, th').eq(index));
+    })
+
+    return ret;
+
   };
 
   TableButton.prototype.deleteCol = function($td) {
-    var $newTd, $table, $tr, index, noOtherCol, noOtherRow;
-    $tr = $td.parent('tr');
-    noOtherRow = $tr.closest('table').find('tr').length < 2;
-    noOtherCol = $td.siblings('td, th').length < 1;
-    if (noOtherRow && noOtherCol) {
-      return this.deleteTable($td);
-    } else {
-      index = $tr.find('td, th').index($td);
-      $newTd = $td.next('td, th');
-      if (!($newTd.length > 0)) {
-        $newTd = $tr.prev('td, th');
+    var self = this,
+        ret; 
+
+    tables.deleteCol($td[0],function(newTd){
+      if (newTd) {
+        ret = self.editor.selection.setRangeAtEndOf($(newTd));
       }
-      $table = $tr.closest('table');
-      $table.find('col').eq(index).remove();
-      $table.find('tr').each(function(i, tr) {
-        return $(tr).find('td, th').eq(index).remove();
-      });
-      this.refreshTableWidth($table);
-      return this.editor.selection.setRangeAtEndOf($newTd);
-    }
+    })
+
+    return ret;
   };
 
   TableButton.prototype.insertCol = function($td, direction) {
-    var $col, $newCol, $newTd, $table, $tr, index, tableWidth, width;
-    if (direction == null) {
-      direction = 'after';
-    }
-    $tr = $td.parent('tr');
-    index = $tr.find('td, th').index($td);
-    $table = $td.closest('table');
-    $col = $table.find('col').eq(index);
-    $table.find('tr').each((function(_this) {
-      return function(i, tr) {
-        var $newTd, cellTag;
-        cellTag = $(tr).parent().is('thead') ? 'th' : 'td';
-        $newTd = $("<" + cellTag + "/>").append(_this.editor.util.phBr);
-        return $(tr).find('td, th').eq(index)[direction]($newTd);
-      };
-    })(this));
-    $newCol = $('<col/>');
-    $col[direction]($newCol);
-    tableWidth = $table.width();
-    width = Math.max(parseFloat($col.attr('width')) / 2, 50 / tableWidth * 100);
-    $col.attr('width', width + '%');
-    $newCol.attr('width', width + '%');
-    this.refreshTableWidth($table);
-    $newTd = direction === 'after' ? $td.next('td, th') : $td.prev('td, th');
-    return this.editor.selection.setRangeAtStartOf($newTd);
+    var self = this,
+        ret; 
+
+    tables.insertCol($td[0],direction,self.editor.util.phBr,function(newTd){
+      ret = self.editor.selection.setRangeAtStartOf($(newTd));
+    })
+
+    return ret;
   };
 
   TableButton.prototype.deleteTable = function($td) {
-    var $block, $table;
-    $table = $td.closest('.simditor-table');
-    $block = $table.next('p');
-    $table.remove();
-    if ($block.length > 0) {
-      return this.editor.selection.setRangeAtStartOf($block);
-    }
+    var self = this;
+    tables.deleteTable($td[0],function($block){
+      if ($block.length > 0) {
+        return self.editor.selection.setRangeAtStartOf($block);
+      }
+    });
   };
 
   TableButton.prototype.command = function(param) {
