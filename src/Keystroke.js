@@ -151,7 +151,7 @@ define([
         if (!(_this.editor.util.isEmptyNode($cloneNode) && $node.is(_this.editor.selection.blockNodes().last()))) {
           return;
         }
-        listEl = $node.parent();
+        listEl = $node.parent();  
         if ($node.next('li').length > 0) {
           if (!_this.editor.util.isEmptyNode($node)) {
             return;
