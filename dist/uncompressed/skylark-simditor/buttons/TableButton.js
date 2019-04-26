@@ -112,81 +112,14 @@ define([
   };
 
   TableButton.prototype._initResize = function() {
-    var $editor;
-    $editor = this.editor;
-    $(document).on('mousemove.simditor-table', '.simditor-table td, .simditor-table th', function(e) {
-      var $col, $colgroup, $resizeHandle, $td, $wrapper, index, ref, ref1, x;
-      $wrapper = $(this).parents('.simditor-table');
-      $resizeHandle = $wrapper.find('.simditor-resize-handle');
-      $colgroup = $wrapper.find('colgroup');
-      if ($wrapper.hasClass('resizing')) {
-        return;
+
+    tables.resizable(document,{
+      cssClasses : {
+        resizeHandle : "simditor-resize-handle",
+        wrapper : "simditor-table"
       }
-      $td = $(e.currentTarget);
-      x = e.pageX - $(e.currentTarget).offset().left;
-      if (x < 5 && $td.prev().length > 0) {
-        $td = $td.prev();
-      }
-      if ($td.next('td, th').length < 1) {
-        $resizeHandle.hide();
-        return;
-      }
-      if ((ref = $resizeHandle.data('td')) != null ? ref.is($td) : void 0) {
-        $resizeHandle.show();
-        return;
-      }
-      index = $td.parent().find('td, th').index($td);
-      $col = $colgroup.find('col').eq(index);
-      if ((ref1 = $resizeHandle.data('col')) != null ? ref1.is($col) : void 0) {
-        $resizeHandle.show();
-        return;
-      }
-      return $resizeHandle.css('left', $td.position().left + $td.outerWidth() - 5).data('td', $td).data('col', $col).show();
     });
 
-    $(document).on('mouseleave.simditor-table', '.simditor-table', function(e) {
-      return $(this).find('.simditor-resize-handle').hide();
-    });
-    return $(document).on('mousedown.simditor-resize-handle', '.simditor-resize-handle', function(e) {
-      var $handle, $leftCol, $leftTd, $rightCol, $rightTd, $wrapper, minWidth, startHandleLeft, startLeftWidth, startRightWidth, startX, tableWidth;
-      $wrapper = $(this).parent('.simditor-table');
-      $handle = $(e.currentTarget);
-      $leftTd = $handle.data('td');
-      $leftCol = $handle.data('col');
-      $rightTd = $leftTd.next('td, th');
-      $rightCol = $leftCol.next('col');
-      startX = e.pageX;
-      startLeftWidth = $leftTd.outerWidth() * 1;
-      startRightWidth = $rightTd.outerWidth() * 1;
-      startHandleLeft = parseFloat($handle.css('left'));
-      tableWidth = $leftTd.closest('table').width();
-      minWidth = 50;
-      $(document).on('mousemove.simditor-resize-table', function(e) {
-        var deltaX, leftWidth, rightWidth;
-        deltaX = e.pageX - startX;
-        leftWidth = startLeftWidth + deltaX;
-        rightWidth = startRightWidth - deltaX;
-        if (leftWidth < minWidth) {
-          leftWidth = minWidth;
-          deltaX = minWidth - startLeftWidth;
-          rightWidth = startRightWidth - deltaX;
-        } else if (rightWidth < minWidth) {
-          rightWidth = minWidth;
-          deltaX = startRightWidth - minWidth;
-          leftWidth = startLeftWidth + deltaX;
-        }
-        $leftCol.attr('width', (leftWidth / tableWidth * 100) + '%');
-        $rightCol.attr('width', (rightWidth / tableWidth * 100) + '%');
-        return $handle.css('left', startHandleLeft + deltaX);
-      });
-      $(document).one('mouseup.simditor-resize-table', function(e) {
-        $editor.sync();
-        $(document).off('.simditor-resize-table');
-        return $wrapper.removeClass('resizing');
-      });
-      $wrapper.addClass('resizing');
-      return false;
-    });
   };
 
   TableButton.prototype._initShortcuts = function() {
