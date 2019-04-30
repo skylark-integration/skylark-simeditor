@@ -1,10 +1,10 @@
 define([
-  "skylark-jquery",
-  "./_extend",
-  "./Module"
-],function($,extend,Module){ 
+  "skylark-langx/langx",
+  "skylark-jquery"
+],function(langx,$){ 
 
-  var Clipboard = Module.inherit({
+
+  var Clipboard = langx.Evented.inherit({
 
   });
 
@@ -16,12 +16,12 @@ define([
     cleanPaste: false
   };
 
-  Clipboard.prototype._init = function() {
-    this.editor = this._module;
+  Clipboard.prototype.init = function(editor) {
+    this.editor = editor; //this._module;
     if (this.opts.pasteImage && typeof this.opts.pasteImage !== 'string') {
       this.opts.pasteImage = 'inline';
     }
-    return this.editor.body.on('paste', (function(_this) {
+    this.editor.body.on('paste', (function(_this) {
       return function(e) {
         var range;
         if (_this.pasting || _this._pasteBin) {

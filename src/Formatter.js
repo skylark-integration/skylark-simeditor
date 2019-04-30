@@ -1,19 +1,19 @@
 define([
+  "skylark-langx/langx",
   "skylark-jquery",
-  "./_extend",
-  "./Module",
-],function($,extend,Module){ 
+],function(langx,$){ 
+
   var indexOf = [].indexOf ;
 
-  var Formatter = Module.inherit({
+  var Formatter = langx.Evented.inherit({
     opts : {
       allowedTags: [],
       allowedAttributes: {},
       allowedStyles: {}
     },
 
-    _init : function() {
-      this.editor = this._module;
+    init : function(editor) {
+      this.editor = editor; //this._module;
       this._allowedTags = $.merge(['br', 'span', 'a', 'img', 'b', 'strong', 'i', 'strike', 'u', 'font', 'p', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'hr'], this.opts.allowedTags);
       this._allowedAttributes = $.extend({
         img: ['src', 'alt', 'width', 'height', 'data-non-image'],
@@ -34,7 +34,7 @@ define([
         h3: ['margin-left', 'text-align'],
         h4: ['margin-left', 'text-align']
       }, this.opts.allowedStyles);
-      return this.editor.body.on('click', 'a', function(e) {
+      this.editor.body.on('click', 'a', function(e) {
         return false;
       });
     },

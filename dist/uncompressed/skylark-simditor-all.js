@@ -108,15 +108,6 @@ define([], function () {
         './i18n'
     ], function ($, extend, Module, hotkeys, uploader, Util, InputManager, Selection, UndoManager, Keystroke, Formatter, Toolbar, Indentation, Clipboard, i18n) {
         var Simditor = Module.inherit({});
-        Simditor.connect(Util);
-        Simditor.connect(InputManager);
-        Simditor.connect(Selection);
-        Simditor.connect(UndoManager);
-        Simditor.connect(Keystroke);
-        Simditor.connect(Formatter);
-        Simditor.connect(Toolbar);
-        Simditor.connect(Indentation);
-        Simditor.connect(Clipboard);
         Simditor.count = 0;
         Simditor.prototype.opts = {
             textarea: null,
@@ -127,6 +118,7 @@ define([], function () {
             indentWidth: 40
         };
         Simditor.prototype._init = function () {
+            this.util = new Util(this);
             var e, editor, uploadOpts;
             this.textarea = $(this.opts.textarea);
             this.opts.placeholder = this.opts.placeholder || this.textarea.attr('placeholder');
@@ -172,6 +164,14 @@ define([], function () {
                     e = _error;
                 }
             }
+            this.inputManager = new InputManager(this);
+            this.selection = new Selection(this);
+            this.undoManager = new UndoManager(this);
+            this.keystroke = new Keystroke(this);
+            this.formatter = new Formatter(this);
+            this.toolbar = new Toolbar(this);
+            this.indentation = new Indentation(this);
+            this.clipboard = new Clipboard(this);
         };
         Simditor.prototype._tpl = '<div class="simditor">\n  <div class="simditor-wrapper">\n    <div class="simditor-placeholder"></div>\n    <div class="simditor-body" contenteditable="true">\n    </div>\n  </div>\n</div>';
         Simditor.prototype._render = function () {
@@ -296,6 +296,7 @@ define([], function () {
             $(window).off('.simditor-' + this.id);
             return this.off();
         };
+        Simditor.Toolbar = Toolbar;
         Simditor.i18n = i18n;
         return Simditor;
     });
@@ -12301,7 +12302,8 @@ define('skylark-simditor/Button',[
 
   var Button = Module.inherit( {
     init : function(opts) {
-      this.editor = opts.editor;
+      this.toolbar = opts.toolbar;
+      this.editor = opts.toolbar.editor;
       this.title = this._t(this.name);
       Module.prototype.init.call(this, opts);
     }
@@ -12380,7 +12382,7 @@ define('skylark-simditor/Button',[
         if (btn.hasClass('disabled') || noFocus) {
           return false;
         }
-        _this.editor.toolbar.wrapper.removeClass('menu-on');
+        _this.toolbar.wrapper.removeClass('menu-on');
         param = btn.data('param');
         _this.command(param);
         return false;
@@ -12438,7 +12440,7 @@ define('skylark-simditor/Button',[
   };
 
   Button.prototype.render = function() {
-    this.wrapper = $(this._tpl.item).appendTo(this.editor.toolbar.list);
+    this.wrapper = $(this._tpl.item).appendTo(this.toolbar.list);
     this.el = this.wrapper.find('a.toolbar-item');
     this.el.attr('title', this.title).addClass("toolbar-item-" + this.name).data('button', this);
     this.setIcon(this.icon);
@@ -12701,12 +12703,90 @@ define('skylark-simditor/Popover',[
 	
 });
 define('skylark-simditor/Toolbar',[
-  "skylark-jquery",
-  "./_extend",
-  "./Module"
-],function($,extend,Module){ 
+  "skylark-langx/langx",
+  "skylark-jquery"
+],function(langx,$){ 
 
-  var Toolbar = Module.inherit({
+  var Toolbar = langx.Evented.inherit({
+    init : function(editor) {
+      var floatInitialized, initToolbarFloat, toolbarHeight;
+      this.editor = editor;
+
+      if (!this.opts.toolbar) {
+        return;
+      }
+      if (!$.isArray(this.opts.toolbar)) {
+        this.opts.toolbar = ['bold', 'italic', 'underline', 'strikethrough', '|', 'ol', 'ul', 'blockquote', 'code', '|', 'link', 'image', '|', 'indent', 'outdent'];
+      }
+      this._render();
+      this.list.on('click', function(e) {
+        return false;
+      });
+      this.wrapper.on('mousedown', (function(_this) {
+        return function(e) {
+          return _this.list.find('.menu-on').removeClass('.menu-on');
+        };
+      })(this));
+      $(document).on('mousedown.simditor' + this.editor.id, (function(_this) {
+        return function(e) {
+          return _this.list.find('.menu-on').removeClass('.menu-on');
+        };
+      })(this));
+      if (!this.opts.toolbarHidden && this.opts.toolbarFloat) {
+        this.wrapper.css('top', this.opts.toolbarFloatOffset);
+        toolbarHeight = 0;
+        initToolbarFloat = (function(_this) {
+          return function() {
+            _this.wrapper.css('position', 'static');
+            _this.wrapper.width('auto');
+            _this.editor.util.reflow(_this.wrapper);
+            _this.wrapper.width(_this.wrapper.outerWidth());
+            _this.wrapper.css('left', _this.editor.util.os.mobile ? _this.wrapper.position().left : _this.wrapper.offset().left);
+            _this.wrapper.css('position', '');
+            toolbarHeight = _this.wrapper.outerHeight();
+            _this.editor.placeholderEl.css('top', toolbarHeight);
+            return true;
+          };
+        })(this);
+        floatInitialized = null;
+        $(window).on('resize.simditor-' + this.editor.id, function(e) {
+          return floatInitialized = initToolbarFloat();
+        });
+        $(window).on('scroll.simditor-' + this.editor.id, (function(_this) {
+          return function(e) {
+            var bottomEdge, scrollTop, topEdge;
+            if (!_this.wrapper.is(':visible')) {
+              return;
+            }
+            topEdge = _this.editor.wrapper.offset().top;
+            bottomEdge = topEdge + _this.editor.wrapper.outerHeight() - 80;
+            scrollTop = $(document).scrollTop() + _this.opts.toolbarFloatOffset;
+            if (scrollTop <= topEdge || scrollTop >= bottomEdge) {
+              _this.editor.wrapper.removeClass('toolbar-floating').css('padding-top', '');
+              if (_this.editor.util.os.mobile) {
+                return _this.wrapper.css('top', _this.opts.toolbarFloatOffset);
+              }
+            } else {
+              floatInitialized || (floatInitialized = initToolbarFloat());
+              _this.editor.wrapper.addClass('toolbar-floating').css('padding-top', toolbarHeight);
+              if (_this.editor.util.os.mobile) {
+                return _this.wrapper.css('top', scrollTop - topEdge + _this.opts.toolbarFloatOffset);
+              }
+            }
+          };
+        })(this));
+      }
+      this.editor.on('destroy', (function(_this) {
+        return function() {
+          return _this.buttons.length = 0;
+        };
+      })(this));
+      $(document).on("mousedown.simditor-" + this.editor.id, (function(_this) {
+        return function(e) {
+          return _this.list.find('li.menu-on').removeClass('menu-on');
+        };
+      })(this));
+    }
 
   });
 
@@ -12724,84 +12804,6 @@ define('skylark-simditor/Toolbar',[
     separator: '<li><span class="separator"></span></li>'
   };
 
-  Toolbar.prototype._init = function() {
-    var floatInitialized, initToolbarFloat, toolbarHeight;
-    this.editor = this._module;
-    if (!this.opts.toolbar) {
-      return;
-    }
-    if (!$.isArray(this.opts.toolbar)) {
-      this.opts.toolbar = ['bold', 'italic', 'underline', 'strikethrough', '|', 'ol', 'ul', 'blockquote', 'code', '|', 'link', 'image', '|', 'indent', 'outdent'];
-    }
-    this._render();
-    this.list.on('click', function(e) {
-      return false;
-    });
-    this.wrapper.on('mousedown', (function(_this) {
-      return function(e) {
-        return _this.list.find('.menu-on').removeClass('.menu-on');
-      };
-    })(this));
-    $(document).on('mousedown.simditor' + this.editor.id, (function(_this) {
-      return function(e) {
-        return _this.list.find('.menu-on').removeClass('.menu-on');
-      };
-    })(this));
-    if (!this.opts.toolbarHidden && this.opts.toolbarFloat) {
-      this.wrapper.css('top', this.opts.toolbarFloatOffset);
-      toolbarHeight = 0;
-      initToolbarFloat = (function(_this) {
-        return function() {
-          _this.wrapper.css('position', 'static');
-          _this.wrapper.width('auto');
-          _this.editor.util.reflow(_this.wrapper);
-          _this.wrapper.width(_this.wrapper.outerWidth());
-          _this.wrapper.css('left', _this.editor.util.os.mobile ? _this.wrapper.position().left : _this.wrapper.offset().left);
-          _this.wrapper.css('position', '');
-          toolbarHeight = _this.wrapper.outerHeight();
-          _this.editor.placeholderEl.css('top', toolbarHeight);
-          return true;
-        };
-      })(this);
-      floatInitialized = null;
-      $(window).on('resize.simditor-' + this.editor.id, function(e) {
-        return floatInitialized = initToolbarFloat();
-      });
-      $(window).on('scroll.simditor-' + this.editor.id, (function(_this) {
-        return function(e) {
-          var bottomEdge, scrollTop, topEdge;
-          if (!_this.wrapper.is(':visible')) {
-            return;
-          }
-          topEdge = _this.editor.wrapper.offset().top;
-          bottomEdge = topEdge + _this.editor.wrapper.outerHeight() - 80;
-          scrollTop = $(document).scrollTop() + _this.opts.toolbarFloatOffset;
-          if (scrollTop <= topEdge || scrollTop >= bottomEdge) {
-            _this.editor.wrapper.removeClass('toolbar-floating').css('padding-top', '');
-            if (_this.editor.util.os.mobile) {
-              return _this.wrapper.css('top', _this.opts.toolbarFloatOffset);
-            }
-          } else {
-            floatInitialized || (floatInitialized = initToolbarFloat());
-            _this.editor.wrapper.addClass('toolbar-floating').css('padding-top', toolbarHeight);
-            if (_this.editor.util.os.mobile) {
-              return _this.wrapper.css('top', scrollTop - topEdge + _this.opts.toolbarFloatOffset);
-            }
-          }
-        };
-      })(this));
-    }
-    this.editor.on('destroy', (function(_this) {
-      return function() {
-        return _this.buttons.length = 0;
-      };
-    })(this));
-    return $(document).on("mousedown.simditor-" + this.editor.id, (function(_this) {
-      return function(e) {
-        return _this.list.find('li.menu-on').removeClass('menu-on');
-      };
-    })(this));
-  };
 
   Toolbar.prototype._render = function() {
     var k, len, name, ref;
@@ -12820,6 +12822,7 @@ define('skylark-simditor/Toolbar',[
         continue;
       }
       this.buttons.push(new this.constructor.buttons[name]({
+        toolbar : this,
         editor: this.editor
       }));
     }

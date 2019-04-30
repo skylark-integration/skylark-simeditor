@@ -1,9 +1,33 @@
 define([
-  "skylark-jquery",
-  "./_extend",
-  "./Module"
-],function($,extend,Module){ 
-  var Uploader = Module.inherit({
+  "skylark-langx/langx",
+  "skylark-jquery"
+],function(langx,$){ 
+
+  var Uploader = langx.Evented.inherit({
+    init : function() {
+      this.files = [];
+      this.queue = [];
+      this.id = ++Uploader.count;
+      this.on('uploadcomplete', (function(_this) {
+        return function(e, file) {
+          _this.files.splice($.inArray(file, _this.files), 1);
+          if (_this.queue.length > 0 && _this.files.length < _this.opts.connectionCount) {
+            return _this.upload(_this.queue.shift());
+          } else {
+            return _this.uploading = false;
+          }
+        };
+      })(this));
+      return $(window).on('beforeunload.uploader-' + this.id, (function(_this) {
+        return function(e) {
+          if (!_this.uploading) {
+            return;
+          }
+          e.originalEvent.returnValue = _this._t('leaveConfirm');
+          return _this._t('leaveConfirm');
+        };
+      })(this));
+    }
 
   });
 
@@ -16,30 +40,7 @@ define([
     connectionCount: 3
   };
 
-  Uploader.prototype._init = function() {
-    this.files = [];
-    this.queue = [];
-    this.id = ++Uploader.count;
-    this.on('uploadcomplete', (function(_this) {
-      return function(e, file) {
-        _this.files.splice($.inArray(file, _this.files), 1);
-        if (_this.queue.length > 0 && _this.files.length < _this.opts.connectionCount) {
-          return _this.upload(_this.queue.shift());
-        } else {
-          return _this.uploading = false;
-        }
-      };
-    })(this));
-    return $(window).on('beforeunload.uploader-' + this.id, (function(_this) {
-      return function(e) {
-        if (!_this.uploading) {
-          return;
-        }
-        e.originalEvent.returnValue = _this._t('leaveConfirm');
-        return _this._t('leaveConfirm');
-      };
-    })(this));
-  };
+
 
   Uploader.prototype.generateId = (function() {
     var id;

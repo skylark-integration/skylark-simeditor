@@ -1,21 +1,21 @@
 define([
-  "skylark-jquery",
-  "./_extend",
-  "./Module"
-],function($,extend,Module){ 
+  "skylark-langx/langx",
+  "skylark-jquery"
+],function(langx,$){ 
 
-  var Keystroke = Module.inherit({
 
+  var Keystroke = langx.Evented.inherit({
+    init : function(editor) {
+      this.editor = editor; //this._module;
+      this._keystrokeHandlers = {};
+      this._initKeystrokeHandlers();
+    }
   });
 
 
   Keystroke.pluginName = 'Keystroke';
 
-  Keystroke.prototype._init = function() {
-    this.editor = this._module;
-    this._keystrokeHandlers = {};
-    return this._initKeystrokeHandlers();
-  };
+
 
   Keystroke.prototype.add = function(key, node, handler) {
     key = key.toLowerCase();

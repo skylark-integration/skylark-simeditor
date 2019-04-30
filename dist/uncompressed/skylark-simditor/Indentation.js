@@ -1,10 +1,10 @@
 define([
+  "skylark-langx/langx",
   "skylark-jquery",
-  "./_extend",
-  "./Module"
-],function($,extend,Module){ 
+],function(langx,$){ 
 
-  var Indentation = Module.inherit({
+
+  var Indentation = langx.Evented.inherit({
 
   });
 
@@ -15,9 +15,9 @@ define([
     tabIndent: true
   };
 
-  Indentation.prototype._init = function() {
-    this.editor = this._module;
-    return this.editor.keystroke.add('tab', '*', (function(_this) {
+  Indentation.prototype.init = function(editor) {
+    this.editor = editor; // this._module;
+    this.editor.keystroke.add('tab', '*', (function(_this) {
       return function(e) {
         var codeButton;
         codeButton = _this.editor.toolbar.findButton('code');

@@ -1,12 +1,10 @@
 define([
   "skylark-langx/langx",
   "skylark-utils-dom/noder",
-  "skylark-jquery",
-  "./_extend",
-  "./Module"
-],function(langx,noder,$,extend,Module){ 
+  "skylark-jquery"
+],function(langx,noder,$){ 
 
-  var Selection = Module.inherit({
+  var Selection = langx.Evented.inherit({
     _range : null,
 
     _startNodes : null,
@@ -21,12 +19,14 @@ define([
 
     _rootNodes : null,
 
-    _init : function() {
+    init : function(editor,options) {
       var self = this;
-      this.editor = this._module;
+      this.editor = editor; //this._module;
+      this.options = options;
       this._selection = document.getSelection();
 
       this.editor.on('selectionchanged', function(e) {
+        console.log("selectionchanged");
         self.reset();
         return self._range = self._selection.getRangeAt(0);
       });
@@ -35,7 +35,7 @@ define([
         return self.reset();
       });
 
-      return this.editor.on('focus', function(e) {
+      this.editor.on('focus', function(e) {
         self.reset();
         return self._range = self._selection.getRangeAt(0);
       });
@@ -56,6 +56,8 @@ define([
       var e;
       try {
         this._selection.removeAllRanges();
+        console.log("clear");
+        debugger;
       } catch (_error) {
         e = _error;
       }

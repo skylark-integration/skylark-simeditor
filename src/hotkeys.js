@@ -1,11 +1,10 @@
 define([
+  "skylark-langx/langx",
   "skylark-jquery",
-  "./_extend",
-  "./Module"
-],function($,extend,Module){ 
+],function(langx,$){ 
 
 
-  var Hotkeys = Module.inherit({
+  var Hotkeys = langx.Evented.inherit({
 
   });
 
@@ -153,11 +152,11 @@ define([
     el: document
   };
 
-  Hotkeys.prototype._init = function() {
+  Hotkeys.prototype.init = function() {
     this.id = ++this.constructor.count;
     this._map = {};
     this._delegate = typeof this.opts.el === "string" ? document : this.opts.el;
-    return $(this._delegate).on("keydown.simple-hotkeys-" + this.id, this.opts.el, (function(_this) {
+    $(this._delegate).on("keydown.simple-hotkeys-" + this.id, this.opts.el, (function(_this) {
       return function(e) {
         var ref;
         return (ref = _this._getHander(e)) != null ? ref.call(_this, e) : void 0;

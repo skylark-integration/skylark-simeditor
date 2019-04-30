@@ -21,23 +21,23 @@ define([
 
   });
 
-  Simditor.connect(Util);
+  //Simditor.connect(Util);
 
-  Simditor.connect(InputManager);
+  //Simditor.connect(InputManager);
 
-  Simditor.connect(Selection);
+  //Simditor.connect(Selection);
 
-  Simditor.connect(UndoManager);
+  //Simditor.connect(UndoManager);
 
-  Simditor.connect(Keystroke);
+  //Simditor.connect(Keystroke);
 
-  Simditor.connect(Formatter);
+  //Simditor.connect(Formatter);
 
-  Simditor.connect(Toolbar);
+  //Simditor.connect(Toolbar);
 
-  Simditor.connect(Indentation);
+  //Simditor.connect(Indentation);
 
-  Simditor.connect(Clipboard);
+  //Simditor.connect(Clipboard);
 
   Simditor.count = 0;
 
@@ -51,6 +51,9 @@ define([
   };
 
   Simditor.prototype._init = function() {
+    this.util = new Util(this);
+
+
     var e, editor, uploadOpts;
     this.textarea = $(this.opts.textarea);
     this.opts.placeholder = this.opts.placeholder || this.textarea.attr('placeholder');
@@ -72,6 +75,7 @@ define([
       throw new Error('simditor: simple-hotkeys is required.');
       return;
     }
+
     if (this.opts.upload && uploader) {
       uploadOpts = typeof this.opts.upload === 'object' ? this.opts.upload : {};
       this.uploader = uploader(uploadOpts);
@@ -98,6 +102,16 @@ define([
         e = _error;
       }
     }
+
+    this.inputManager = new InputManager(this);
+    this.selection = new Selection(this);
+    this.undoManager = new UndoManager(this);
+    this.keystroke = new Keystroke(this);
+    this.formatter = new Formatter(this);
+    this.toolbar = new Toolbar(this);
+    this.indentation = new Indentation(this);
+    this.clipboard = new Clipboard(this);
+
   };
 
   Simditor.prototype._tpl = "<div class=\"simditor\">\n  <div class=\"simditor-wrapper\">\n    <div class=\"simditor-placeholder\"></div>\n    <div class=\"simditor-body\" contenteditable=\"true\">\n    </div>\n  </div>\n</div>";
@@ -232,6 +246,9 @@ define([
     $(window).off('.simditor-' + this.id);
     return this.off();
   };
+
+
+  Simditor.Toolbar = Toolbar;
 
   Simditor.i18n = i18n;
 

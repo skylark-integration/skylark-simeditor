@@ -8,7 +8,8 @@ define([
 
   var Button = Module.inherit( {
     init : function(opts) {
-      this.editor = opts.editor;
+      this.toolbar = opts.toolbar;
+      this.editor = opts.toolbar.editor;
       this.title = this._t(this.name);
       Module.prototype.init.call(this, opts);
     }
@@ -87,7 +88,7 @@ define([
         if (btn.hasClass('disabled') || noFocus) {
           return false;
         }
-        _this.editor.toolbar.wrapper.removeClass('menu-on');
+        _this.toolbar.wrapper.removeClass('menu-on');
         param = btn.data('param');
         _this.command(param);
         return false;
@@ -145,7 +146,7 @@ define([
   };
 
   Button.prototype.render = function() {
-    this.wrapper = $(this._tpl.item).appendTo(this.editor.toolbar.list);
+    this.wrapper = $(this._tpl.item).appendTo(this.toolbar.list);
     this.el = this.wrapper.find('a.toolbar-item');
     this.el.attr('title', this.title).addClass("toolbar-item-" + this.name).data('button', this);
     this.setIcon(this.icon);

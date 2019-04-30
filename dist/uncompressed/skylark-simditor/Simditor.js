@@ -20,15 +20,6 @@ define([], function () {
         './i18n'
     ], function ($, extend, Module, hotkeys, uploader, Util, InputManager, Selection, UndoManager, Keystroke, Formatter, Toolbar, Indentation, Clipboard, i18n) {
         var Simditor = Module.inherit({});
-        Simditor.connect(Util);
-        Simditor.connect(InputManager);
-        Simditor.connect(Selection);
-        Simditor.connect(UndoManager);
-        Simditor.connect(Keystroke);
-        Simditor.connect(Formatter);
-        Simditor.connect(Toolbar);
-        Simditor.connect(Indentation);
-        Simditor.connect(Clipboard);
         Simditor.count = 0;
         Simditor.prototype.opts = {
             textarea: null,
@@ -39,6 +30,7 @@ define([], function () {
             indentWidth: 40
         };
         Simditor.prototype._init = function () {
+            this.util = new Util(this);
             var e, editor, uploadOpts;
             this.textarea = $(this.opts.textarea);
             this.opts.placeholder = this.opts.placeholder || this.textarea.attr('placeholder');
@@ -84,6 +76,14 @@ define([], function () {
                     e = _error;
                 }
             }
+            this.inputManager = new InputManager(this);
+            this.selection = new Selection(this);
+            this.undoManager = new UndoManager(this);
+            this.keystroke = new Keystroke(this);
+            this.formatter = new Formatter(this);
+            this.toolbar = new Toolbar(this);
+            this.indentation = new Indentation(this);
+            this.clipboard = new Clipboard(this);
         };
         Simditor.prototype._tpl = '<div class="simditor">\n  <div class="simditor-wrapper">\n    <div class="simditor-placeholder"></div>\n    <div class="simditor-body" contenteditable="true">\n    </div>\n  </div>\n</div>';
         Simditor.prototype._render = function () {
@@ -208,6 +208,7 @@ define([], function () {
             $(window).off('.simditor-' + this.id);
             return this.off();
         };
+        Simditor.Toolbar = Toolbar;
         Simditor.i18n = i18n;
         return Simditor;
     });

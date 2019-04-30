@@ -1,11 +1,129 @@
 define([
-  "skylark-jquery",
-  "./_extend",
-  "./Module"
-],function($,extend,Module){ 
+  "skylark-langx/langx",
+  "skylark-jquery"
+],function(langx,$){ 
+
   var indexOf = [].indexOf ;
 
-  var InputManager = Module.inherit({
+  var InputManager = langx.Evented.inherit({
+    init : function(editor) {
+      this.editor = editor;
+      var selectAllKey, submitKey;
+      this.throttledValueChanged = this.editor.util.throttle((function(_this) {
+        return function(params) {
+          return setTimeout(function() {
+            return _this.editor.trigger('valuechanged', params);
+          }, 10);
+        };
+      })(this), 300);
+      this.throttledSelectionChanged = this.editor.util.throttle((function(_this) {
+        return function() {
+          return _this.editor.trigger('selectionchanged');
+        };
+      })(this), 50);
+      $(document).on('selectionchange.simditor' + this.editor.id, (function(_this) {
+        return function(e) {
+          var triggerEvent;
+          if (!(_this.focused && !_this.editor.clipboard.pasting)) {
+            return;
+          }
+          triggerEvent = function() {
+            if (_this._selectionTimer) {
+              clearTimeout(_this._selectionTimer);
+              _this._selectionTimer = null;
+            }
+            if (_this.editor.selection._selection.rangeCount > 0) {
+              return _this.throttledSelectionChanged();
+            } else {
+              return _this._selectionTimer = setTimeout(function() {
+                _this._selectionTimer = null;
+                if (_this.focused) {
+                  return triggerEvent();
+                }
+              }, 10);
+            }
+          };
+          return triggerEvent();
+        };
+      })(this));
+      this.editor.on('valuechanged', (function(_this) {
+        return function() {
+          var $rootBlocks;
+          _this.lastCaretPosition = null;
+          $rootBlocks = _this.editor.body.children().filter(function(i, node) {
+            return _this.editor.util.isBlockNode(node);
+          });
+          if (_this.focused && $rootBlocks.length === 0) {
+            _this.editor.selection.save();
+            _this.editor.formatter.format();
+            _this.editor.selection.restore();
+          }
+          _this.editor.body.find('hr, pre, .simditor-table').each(function(i, el) {
+            var $el, formatted;
+            $el = $(el);
+            if ($el.parent().is('blockquote') || $el.parent()[0] === _this.editor.body[0]) {
+              formatted = false;
+              if ($el.next().length === 0) {
+                $('<p/>').append(_this.editor.util.phBr).insertAfter($el);
+                formatted = true;
+              }
+              if ($el.prev().length === 0) {
+                $('<p/>').append(_this.editor.util.phBr).insertBefore($el);
+                formatted = true;
+              }
+              if (formatted) {
+                return _this.throttledValueChanged();
+              }
+            }
+          });
+          _this.editor.body.find('pre:empty').append(_this.editor.util.phBr);
+          if (!_this.editor.util.support.onselectionchange && _this.focused) {
+            return _this.throttledSelectionChanged();
+          }
+        };
+      })(this));
+      this.editor.body.on('keydown', $.proxy(this._onKeyDown, this)).on('keypress', $.proxy(this._onKeyPress, this)).on('keyup', $.proxy(this._onKeyUp, this)).on('mouseup', $.proxy(this._onMouseUp, this)).on('focus', $.proxy(this._onFocus, this)).on('blur', $.proxy(this._onBlur, this)).on('drop', $.proxy(this._onDrop, this)).on('input', $.proxy(this._onInput, this));
+      if (this.editor.util.browser.firefox) {
+        this.editor.hotkeys.add('cmd+left', (function(_this) {
+          return function(e) {
+            e.preventDefault();
+            _this.editor.selection._selection.modify('move', 'backward', 'lineboundary');
+            return false;
+          };
+        })(this));
+        this.editor.hotkeys.add('cmd+right', (function(_this) {
+          return function(e) {
+            e.preventDefault();
+            _this.editor.selection._selection.modify('move', 'forward', 'lineboundary');
+            return false;
+          };
+        })(this));
+        selectAllKey = this.editor.util.os.mac ? 'cmd+a' : 'ctrl+a';
+        this.editor.hotkeys.add(selectAllKey, (function(_this) {
+          return function(e) {
+            var $children, firstBlock, lastBlock, range;
+            $children = _this.editor.body.children();
+            if (!($children.length > 0)) {
+              return;
+            }
+            firstBlock = $children.first().get(0);
+            lastBlock = $children.last().get(0);
+            range = document.createRange();
+            range.setStart(firstBlock, 0);
+            range.setEnd(lastBlock, _this.editor.util.getNodeLength(lastBlock));
+            _this.editor.selection.range(range);
+            return false;
+          };
+        })(this));
+      }
+      submitKey = this.editor.util.os.mac ? 'cmd+enter' : 'ctrl+enter';
+      this.editor.hotkeys.add(submitKey, (function(_this) {
+        return function(e) {
+          _this.editor.el.closest('form').find('button:submit').click();
+          return false;
+        };
+      })(this));
+    }
 
   });
 
@@ -15,124 +133,6 @@ define([
 
   InputManager.prototype._arrowKeys = [37, 38, 39, 40];
 
-  InputManager.prototype._init = function() {
-    var selectAllKey, submitKey;
-    this.editor = this._module;
-    this.throttledValueChanged = this.editor.util.throttle((function(_this) {
-      return function(params) {
-        return setTimeout(function() {
-          return _this.editor.trigger('valuechanged', params);
-        }, 10);
-      };
-    })(this), 300);
-    this.throttledSelectionChanged = this.editor.util.throttle((function(_this) {
-      return function() {
-        return _this.editor.trigger('selectionchanged');
-      };
-    })(this), 50);
-    $(document).on('selectionchange.simditor' + this.editor.id, (function(_this) {
-      return function(e) {
-        var triggerEvent;
-        if (!(_this.focused && !_this.editor.clipboard.pasting)) {
-          return;
-        }
-        triggerEvent = function() {
-          if (_this._selectionTimer) {
-            clearTimeout(_this._selectionTimer);
-            _this._selectionTimer = null;
-          }
-          if (_this.editor.selection._selection.rangeCount > 0) {
-            return _this.throttledSelectionChanged();
-          } else {
-            return _this._selectionTimer = setTimeout(function() {
-              _this._selectionTimer = null;
-              if (_this.focused) {
-                return triggerEvent();
-              }
-            }, 10);
-          }
-        };
-        return triggerEvent();
-      };
-    })(this));
-    this.editor.on('valuechanged', (function(_this) {
-      return function() {
-        var $rootBlocks;
-        _this.lastCaretPosition = null;
-        $rootBlocks = _this.editor.body.children().filter(function(i, node) {
-          return _this.editor.util.isBlockNode(node);
-        });
-        if (_this.focused && $rootBlocks.length === 0) {
-          _this.editor.selection.save();
-          _this.editor.formatter.format();
-          _this.editor.selection.restore();
-        }
-        _this.editor.body.find('hr, pre, .simditor-table').each(function(i, el) {
-          var $el, formatted;
-          $el = $(el);
-          if ($el.parent().is('blockquote') || $el.parent()[0] === _this.editor.body[0]) {
-            formatted = false;
-            if ($el.next().length === 0) {
-              $('<p/>').append(_this.editor.util.phBr).insertAfter($el);
-              formatted = true;
-            }
-            if ($el.prev().length === 0) {
-              $('<p/>').append(_this.editor.util.phBr).insertBefore($el);
-              formatted = true;
-            }
-            if (formatted) {
-              return _this.throttledValueChanged();
-            }
-          }
-        });
-        _this.editor.body.find('pre:empty').append(_this.editor.util.phBr);
-        if (!_this.editor.util.support.onselectionchange && _this.focused) {
-          return _this.throttledSelectionChanged();
-        }
-      };
-    })(this));
-    this.editor.body.on('keydown', $.proxy(this._onKeyDown, this)).on('keypress', $.proxy(this._onKeyPress, this)).on('keyup', $.proxy(this._onKeyUp, this)).on('mouseup', $.proxy(this._onMouseUp, this)).on('focus', $.proxy(this._onFocus, this)).on('blur', $.proxy(this._onBlur, this)).on('drop', $.proxy(this._onDrop, this)).on('input', $.proxy(this._onInput, this));
-    if (this.editor.util.browser.firefox) {
-      this.editor.hotkeys.add('cmd+left', (function(_this) {
-        return function(e) {
-          e.preventDefault();
-          _this.editor.selection._selection.modify('move', 'backward', 'lineboundary');
-          return false;
-        };
-      })(this));
-      this.editor.hotkeys.add('cmd+right', (function(_this) {
-        return function(e) {
-          e.preventDefault();
-          _this.editor.selection._selection.modify('move', 'forward', 'lineboundary');
-          return false;
-        };
-      })(this));
-      selectAllKey = this.editor.util.os.mac ? 'cmd+a' : 'ctrl+a';
-      this.editor.hotkeys.add(selectAllKey, (function(_this) {
-        return function(e) {
-          var $children, firstBlock, lastBlock, range;
-          $children = _this.editor.body.children();
-          if (!($children.length > 0)) {
-            return;
-          }
-          firstBlock = $children.first().get(0);
-          lastBlock = $children.last().get(0);
-          range = document.createRange();
-          range.setStart(firstBlock, 0);
-          range.setEnd(lastBlock, _this.editor.util.getNodeLength(lastBlock));
-          _this.editor.selection.range(range);
-          return false;
-        };
-      })(this));
-    }
-    submitKey = this.editor.util.os.mac ? 'cmd+enter' : 'ctrl+enter';
-    return this.editor.hotkeys.add(submitKey, (function(_this) {
-      return function(e) {
-        _this.editor.el.closest('form').find('button:submit').click();
-        return false;
-      };
-    })(this));
-  };
 
   InputManager.prototype._onFocus = function(e) {
     if (this.editor.clipboard.pasting) {
@@ -151,6 +151,7 @@ define([
             $blockEl = _this.editor.body.children().first();
             range = document.createRange();
             _this.editor.selection.setRangeAtStartOf($blockEl, range);
+            console.log("aaaaaa");
           }
         }
         _this.lastCaretPosition = null;

@@ -1,9 +1,69 @@
 define([
-  "skylark-jquery",
-  "./_extend",
-  "./Module"
-],function($,extend,Module){ 
-  var UndoManager = Module.inherit({
+  "skylark-langx/langx",
+  "skylark-jquery"
+],function(langx,$){ 
+
+  var UndoManager = langx.Evented.inherit({
+    init : function(editor) {
+      this.editor = editor;
+      var redoShortcut, undoShortcut;
+      this._stack = [];
+      if (this.editor.util.os.mac) {
+        undoShortcut = 'cmd+z';
+        redoShortcut = 'shift+cmd+z';
+      } else if (this.editor.util.os.win) {
+        undoShortcut = 'ctrl+z';
+        redoShortcut = 'ctrl+y';
+      } else {
+        undoShortcut = 'ctrl+z';
+        redoShortcut = 'shift+ctrl+z';
+      }
+      this.editor.hotkeys.add(undoShortcut, (function(_this) {
+        return function(e) {
+          e.preventDefault();
+          _this.undo();
+          return false;
+        };
+      })(this));
+      this.editor.hotkeys.add(redoShortcut, (function(_this) {
+        return function(e) {
+          e.preventDefault();
+          _this.redo();
+          return false;
+        };
+      })(this));
+      this.throttledPushState = this.editor.util.throttle((function(_this) {
+        return function() {
+          return _this._pushUndoState();
+        };
+      })(this), 2000);
+      this.editor.on('valuechanged', (function(_this) {
+        return function(e, src) {
+          if (src === 'undo' || src === 'redo') {
+            return;
+          }
+          return _this.throttledPushState();
+        };
+      })(this));
+      this.editor.on('selectionchanged', (function(_this) {
+        return function(e) {
+          _this.resetCaretPosition();
+          return _this.update();
+        };
+      })(this));
+      this.editor.on('focus', (function(_this) {
+        return function(e) {
+          if (_this._stack.length === 0) {
+            return _this._pushUndoState();
+          }
+        };
+      })(this));
+      this.editor.on('blur', (function(_this) {
+        return function(e) {
+          return _this.resetCaretPosition();
+        };
+      })(this));
+    }
 
   });
 
@@ -16,67 +76,6 @@ define([
   UndoManager.prototype._startPosition = null;
 
   UndoManager.prototype._endPosition = null;
-
-  UndoManager.prototype._init = function() {
-    var redoShortcut, undoShortcut;
-    this.editor = this._module;
-    this._stack = [];
-    if (this.editor.util.os.mac) {
-      undoShortcut = 'cmd+z';
-      redoShortcut = 'shift+cmd+z';
-    } else if (this.editor.util.os.win) {
-      undoShortcut = 'ctrl+z';
-      redoShortcut = 'ctrl+y';
-    } else {
-      undoShortcut = 'ctrl+z';
-      redoShortcut = 'shift+ctrl+z';
-    }
-    this.editor.hotkeys.add(undoShortcut, (function(_this) {
-      return function(e) {
-        e.preventDefault();
-        _this.undo();
-        return false;
-      };
-    })(this));
-    this.editor.hotkeys.add(redoShortcut, (function(_this) {
-      return function(e) {
-        e.preventDefault();
-        _this.redo();
-        return false;
-      };
-    })(this));
-    this.throttledPushState = this.editor.util.throttle((function(_this) {
-      return function() {
-        return _this._pushUndoState();
-      };
-    })(this), 2000);
-    this.editor.on('valuechanged', (function(_this) {
-      return function(e, src) {
-        if (src === 'undo' || src === 'redo') {
-          return;
-        }
-        return _this.throttledPushState();
-      };
-    })(this));
-    this.editor.on('selectionchanged', (function(_this) {
-      return function(e) {
-        _this.resetCaretPosition();
-        return _this.update();
-      };
-    })(this));
-    this.editor.on('focus', (function(_this) {
-      return function(e) {
-        if (_this._stack.length === 0) {
-          return _this._pushUndoState();
-        }
-      };
-    })(this));
-    return this.editor.on('blur', (function(_this) {
-      return function(e) {
-        return _this.resetCaretPosition();
-      };
-    })(this));
-  };
 
   UndoManager.prototype.resetCaretPosition = function() {
     this._startPosition = null;

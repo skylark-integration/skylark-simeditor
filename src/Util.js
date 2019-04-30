@@ -4,17 +4,17 @@ define([
   "./Module"
 ],function($,extend,Module){ 
   var Util = Module.inherit({
+    init : function(editor) {
+      this.editor = editor; // this._module;
+      if (this.browser.msie && this.browser.version < 11) {
+        return this.phBr = '';
+      }
+    }
 
   });
 
   Util.pluginName = 'Util';
 
-  Util.prototype._init = function() {
-    this.editor = this._module;
-    if (this.browser.msie && this.browser.version < 11) {
-      return this.phBr = '';
-    }
-  };
 
   Util.prototype.phBr = '<br/>';
 
