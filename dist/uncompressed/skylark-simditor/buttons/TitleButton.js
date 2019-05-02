@@ -1,12 +1,10 @@
 define([
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button",
   "../i18n"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button,i18n){ 
+],function($,Toolbar,Simditor,Button,i18n){ 
   var TitleButton = Button.inherit({
 
    });

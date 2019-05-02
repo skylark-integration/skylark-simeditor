@@ -1,10 +1,10 @@
 define([
   "skylark-jquery",
-  "../_extend",
-  "../Module",
+  "../Toolbar",
+  "../Simditor",
   "../Popover"
-],function($,extend,Module,Popover){ 
-
+],function($,Toolbar,Simditor,Popover){ 
+  
    var CodePopover = Popover.inherit({
 
    });

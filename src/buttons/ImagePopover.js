@@ -1,11 +1,9 @@
 define([
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Popover"
-],function($,extend,SimpleModule,Toolbar,Simditor,Popover){ 
+],function($,Toolbar,Simditor,Popover){ 
    var ImagePopover = Popover.inherit({
 
    });

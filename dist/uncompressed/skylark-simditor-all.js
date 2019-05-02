@@ -12114,196 +12114,6 @@ define('skylark-jquery/main',[
 
 define('skylark-jquery', ['skylark-jquery/main'], function (main) { return main; });
 
-define('skylark-simditor/_extend',[],function(){
-    var hasProp = {}.hasOwnProperty;
-
-    return function extend(child, parent) { 
-      for (var key in parent) { 
-        if (hasProp.call(parent, key)) child[key] = parent[key]; 
-      } 
-      function ctor() { 
-        this.constructor = child; 
-      } ctor.prototype = parent.prototype; 
-      child.prototype = new ctor(); 
-      child.__super__ = parent.prototype; 
-      return child; 
-  　};
-});
-
-define('skylark-simditor/Module',[
-  "skylark-langx/langx",
-  "skylark-jquery"
-], function (langx,$) {
-
-  var  slice = [].slice;
-
-  var Module = langx.Evented.inherit({
-    init : function (opts) {
-      var base, cls, i, instance, instances, len, name;
-      this.opts = $.extend({}, this.opts, opts);
-      (base = this.constructor)._connectedClasses || (base._connectedClasses = []);
-      instances = (function() {
-        var i, len, ref, results;
-        ref = this.constructor._connectedClasses;
-        results = [];
-        for (i = 0, len = ref.length; i < len; i++) {
-          cls = ref[i];
-          name = cls.pluginName.charAt(0).toLowerCase() + cls.pluginName.slice(1);
-          if (cls.prototype._connected) {
-            cls.prototype._module = this;
-          }
-          results.push(this[name] = new cls());
-        }
-        return results;
-      }).call(this);
-      if (this._connected) {
-        this.opts = $.extend({}, this.opts, this._module.opts);
-      } else {
-        this._init();
-        for (i = 0, len = instances.length; i < len; i++) {
-          instance = instances[i];
-          if (typeof instance._init === "function") {
-            instance._init();
-          }
-        }
-      }
-      this.trigger('initialized');
-    }
-
-  });
-
-
-  Module.extend = function(obj) {
-    var key, ref, val;
-    if (!((obj != null) && typeof obj === 'object')) {
-      return;
-    }
-    for (key in obj) {
-      val = obj[key];
-      if (key !== 'included' && key !== 'extended') {
-        this[key] = val;
-      }
-    }
-    return (ref = obj.extended) != null ? ref.call(this) : void 0;
-  };
-
-  Module.include = function(obj) {
-    var key, ref, val;
-    if (!((obj != null) && typeof obj === 'object')) {
-      return;
-    }
-    for (key in obj) {
-      val = obj[key];
-      if (key !== 'included' && key !== 'extended') {
-        this.prototype[key] = val;
-      }
-    }
-    return (ref = obj.included) != null ? ref.call(this) : void 0;
-  };
-
-  Module.connect = function(cls) {
-    if (typeof cls !== 'function') {
-      return;
-    }
-    if (!cls.pluginName) {
-      throw new Error('Module.connect: cannot connect plugin without pluginName');
-      return;
-    }
-    cls.prototype._connected = true;
-    if (!this._connectedClasses) {
-      this._connectedClasses = [];
-    }
-    this._connectedClasses.push(cls);
-    if (cls.pluginName) {
-      return this[cls.pluginName] = cls;
-    }
-  };
-
-  Module.prototype.opts = {};
-
-
-  Module.prototype._init = function() {};
-
-/*
-  Module.prototype.on = function() {
-    var args, ref;
-    args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-    (ref = $(this)).on.apply(ref, args);
-    return this;
-  };
-
-  Module.prototype.one = function() {
-    var args, ref;
-    args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-    (ref = $(this)).one.apply(ref, args);
-    return this;
-  };
-
-  Module.prototype.off = function() {
-    var args, ref;
-    args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-    (ref = $(this)).off.apply(ref, args);
-    return this;
-  };
-
-  Module.prototype.trigger = function() {
-    var args, ref;
-    args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-    (ref = $(this)).trigger.apply(ref, args);
-    return this;
-  };
-
-  Module.prototype.triggerHandler = function() {
-    var args, ref;
-    args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-    return (ref = $(this)).triggerHandler.apply(ref, args);
-  };
-*/
-
-  Module.prototype.triggerHandler =  Module.prototype.trigger = function(type,data) {
-    var args, ref;
-    args = [type];
-    if (data) {
-      args = args.concat(data);
-    }
-    langx.Evented.prototype.trigger.apply(this, args);
-    return this;
-  };
-
-  Module.prototype._t = function() {
-    var args, ref;
-    args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-    return (ref = this.constructor)._t.apply(ref, args);
-  };
-
-  Module._t = function() {
-    var args, key, ref, result;
-    key = arguments[0], args = 2 <= arguments.length ? Array.prototype.slice.call(arguments, 1) : [];
-    result = ((ref = this.i18n[this.locale]) != null ? ref[key] : void 0) || '';
-    if (!(args.length > 0)) {
-      return result;
-    }
-    result = result.replace(/([^%]|^)%(?:(\d+)\$)?s/g, function(p0, p, position) {
-      if (position) {
-        return p + args[parseInt(position) - 1];
-      } else {
-        return p + args.shift();
-      }
-    });
-    return result.replace(/%%s/g, '%s');
-  };
-
-  Module.i18n = {
-    'zh-CN': {}
-  };
-
-  Module.locale = 'zh-CN';
-
-  return Module;
-
-
-});
-
 define('skylark-simditor/i18n',[
 
 ],function(){ 
@@ -12438,20 +12248,19 @@ define('skylark-simditor/i18n',[
     return i18n;
 });
 define('skylark-simditor/Button',[
+  "skylark-langx/langx",
   "skylark-jquery",
-  "./_extend",
-  "./Module",
   "./Simditor",
   "./i18n"
-],function($,extend,Module,Simditor,i18n){ 
+],function(langx, $,Simditor,i18n){ 
   var slice = [].slice;
 
-  var Button = Module.inherit( {
+  var Button = langx.Evented.inherit( {
     init : function(opts) {
       this.toolbar = opts.toolbar;
       this.editor = opts.toolbar.editor;
       this.title = i18n.translate(this.name);
-      Module.prototype.init.call(this, opts);
+      this._init();
     }
   }); 
 
@@ -12684,17 +12493,17 @@ define('skylark-simditor/Button',[
   return Button;
 });
 define('skylark-simditor/Popover',[
+  "skylark-langx/langx",
   "skylark-jquery",
-  "./_extend",
-  "./Module",
-  "./Simditor"
-],function($,extend,Module,Simditor){ 
+  "./Simditor",
+  "./i18n"
+],function(langx,$,Simditor,i18n){ 
 
-  var Popover = Module.inherit({
+  var Popover = langx.Evented.inherit({
      init : function(opts) {
       this.button = opts.button;
       this.editor = opts.button.editor;
-      Module.prototype.init.call(this, opts);
+      this._init();
     }
   });
 
@@ -12824,13 +12633,10 @@ define('skylark-simditor/Popover',[
     return this.el.remove();
   };
 
-  Popover.prototype._t = function() {
+  Popover.prototype._t = function(name) {
     var args, ref, result;
     args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-    result = Module.prototype._t.apply(this, args);
-    if (!result) {
-      result = (ref = this.button)._t.apply(ref, args);
-    }
+    result = i18n.translate.apply(i18n, args);
     return result;
   };
 
@@ -12988,12 +12794,10 @@ define('skylark-simditor/Toolbar',[
 });
 define('skylark-simditor/buttons/AlignmentButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function($,Toolbar,Simditor,Button){ 
    var AlignmentButton = Button.inherit({
 
     });
@@ -13076,12 +12880,10 @@ define('skylark-simditor/buttons/AlignmentButton',[
 });
 define('skylark-simditor/buttons/BlockquoteButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function($,Toolbar,Simditor,Button){ 
    var BlockquoteButton = Button.inherit({
 
    });
@@ -13141,12 +12943,11 @@ define('skylark-simditor/buttons/BlockquoteButton',[
 });
 define('skylark-simditor/buttons/BoldButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function($,Toolbar,Simditor,Button){ 
+  
     var BoldButton = Button.inherit({
 
     });
@@ -13194,11 +12995,11 @@ define('skylark-simditor/buttons/BoldButton',[
 });
 define('skylark-simditor/buttons/CodePopover',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
+  "../Toolbar",
+  "../Simditor",
   "../Popover"
-],function($,extend,Module,Popover){ 
-
+],function($,Toolbar,Simditor,Popover){ 
+  
    var CodePopover = Popover.inherit({
 
    });
@@ -13320,13 +13121,12 @@ define('skylark-simditor/buttons/CodePopover',[
 });
 define('skylark-simditor/buttons/CodeButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button",
   "./CodePopover"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button,CodePopover){ 
+],function($,Toolbar,Simditor,Button,CodePopover){ 
+  
 
    var CodeButton = Button.inherit({
 
@@ -13485,12 +13285,11 @@ define('skylark-simditor/buttons/CodeButton',[
 });
 define('skylark-simditor/buttons/ColorButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function($,Toolbar,Simditor,Button){ 
+  
 
    var ColorButton = Button.inherit({
 
@@ -13582,12 +13381,11 @@ define('skylark-simditor/buttons/ColorButton',[
 });
 define('skylark-simditor/buttons/FontScaleButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function($,Toolbar,Simditor,Button){ 
+  
    var FontScaleButton = Button.inherit({
 
    });
@@ -13692,12 +13490,11 @@ define('skylark-simditor/buttons/FontScaleButton',[
 });
 define('skylark-simditor/buttons/HrButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function($,Toolbar,Simditor,Button){ 
+  
 
    var HrButton = Button.inherit({
 
@@ -13738,12 +13535,10 @@ define('skylark-simditor/buttons/HrButton',[
 });
 define('skylark-simditor/buttons/ImagePopover',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Popover"
-],function($,extend,SimpleModule,Toolbar,Simditor,Popover){ 
+],function($,Toolbar,Simditor,Popover){ 
    var ImagePopover = Popover.inherit({
 
    });
@@ -13985,13 +13780,11 @@ define('skylark-simditor/buttons/ImagePopover',[
 });
 define('skylark-simditor/buttons/ImageButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button",
   "./ImagePopover"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button,ImagePopover){ 
+],function($,Toolbar,Simditor,Button,ImagePopover){ 
    var ImageButton = Button.inherit({
 
    });
@@ -14412,12 +14205,11 @@ define('skylark-simditor/buttons/ImageButton',[
 });
 define('skylark-simditor/buttons/IndentButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function($,Toolbar,Simditor,Button){ 
+  
    var IndentButton = Button.inherit({
 
    });
@@ -14446,12 +14238,11 @@ define('skylark-simditor/buttons/IndentButton',[
 });
 define('skylark-simditor/buttons/ItalicButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function($,Toolbar,Simditor,Button){ 
+  
 
   var ItalicButton = Button.inherit({
 
@@ -14500,12 +14291,10 @@ define('skylark-simditor/buttons/ItalicButton',[
 });
 define('skylark-simditor/buttons/LinkPopover',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Popover"
-],function($,extend,SimpleModule,Toolbar,Simditor,Popover){ 
+],function($,Toolbar,Simditor,Popover){ 
   var LinkPopover = Popover.inherit({
 
   });
@@ -14585,13 +14374,12 @@ define('skylark-simditor/buttons/LinkPopover',[
 });
 define('skylark-simditor/buttons/LinkButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button",
   "./LinkPopover"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button,LinkPopover){ 
+],function($,Toolbar,Simditor,Button,LinkPopover){ 
+  
 
   var LinkButton = Button.inherit({
 
@@ -14669,12 +14457,10 @@ define('skylark-simditor/buttons/LinkButton',[
 });
 define('skylark-simditor/buttons/ListButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function($,Toolbar,Simditor,Button){ 
   var ListButton = Button.inherit({
 
    });
@@ -14726,12 +14512,10 @@ define('skylark-simditor/buttons/ListButton',[
 });
 define('skylark-simditor/buttons/OrderListButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "./ListButton"
-],function($,extend,SimpleModule,Toolbar,Simditor,ListButton){ 
+],function($,Toolbar,Simditor,ListButton){ 
   var OrderListButton = ListButton.inherit({
 
    });
@@ -14764,12 +14548,10 @@ define('skylark-simditor/buttons/OrderListButton',[
 });
 define('skylark-simditor/buttons/OutdentButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function($,Toolbar,Simditor,Button){ 
   var OutdentButton = Button.inherit({
 
    });
@@ -14799,12 +14581,11 @@ define('skylark-simditor/buttons/OutdentButton',[
 });
 define('skylark-simditor/buttons/StrikethroughButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function($,Toolbar,Simditor,Button){ 
+  
   var StrikethroughButton = Button.inherit({
 
    });
@@ -15194,12 +14975,10 @@ define('skylark-utils-dom/tables',[
 define('skylark-simditor/buttons/TableButton',[
   "skylark-utils-dom/tables",
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function(tables,$,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function(tables,$,Toolbar,Simditor,Button){ 
   var TableButton = Button.inherit({
 
    });
@@ -15522,13 +15301,11 @@ define('skylark-simditor/buttons/TableButton',[
 });
 define('skylark-simditor/buttons/TitleButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button",
   "../i18n"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button,i18n){ 
+],function($,Toolbar,Simditor,Button,i18n){ 
   var TitleButton = Button.inherit({
 
    });
@@ -15606,12 +15383,10 @@ define('skylark-simditor/buttons/TitleButton',[
 });
 define('skylark-simditor/buttons/UnderlineButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){
+],function($,Toolbar,Simditor,Button){
   var UnderlineButton = Button.inherit({
 
    });
@@ -15660,12 +15435,10 @@ define('skylark-simditor/buttons/UnderlineButton',[
 });
 define('skylark-simditor/buttons/UnorderListButton',[
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "./ListButton"
-],function($,extend,SimpleModule,Toolbar,Simditor,ListButton){ 
+],function($,Toolbar,Simditor,ListButton){ 
    var UnorderListButton = ListButton.inherit({
 
    });

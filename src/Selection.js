@@ -57,7 +57,6 @@ define([
       try {
         this._selection.removeAllRanges();
         console.log("clear");
-        debugger;
       } catch (_error) {
         e = _error;
       }

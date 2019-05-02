@@ -1,12 +1,10 @@
 define([
   "skylark-utils-dom/tables",
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function(tables,$,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function(tables,$,Toolbar,Simditor,Button){ 
   var TableButton = Button.inherit({
 
    });

@@ -1,15 +1,15 @@
 define([
+  "skylark-langx/langx",
   "skylark-jquery",
-  "./_extend",
-  "./Module",
-  "./Simditor"
-],function($,extend,Module,Simditor){ 
+  "./Simditor",
+  "./i18n"
+],function(langx,$,Simditor,i18n){ 
 
-  var Popover = Module.inherit({
+  var Popover = langx.Evented.inherit({
      init : function(opts) {
       this.button = opts.button;
       this.editor = opts.button.editor;
-      Module.prototype.init.call(this, opts);
+      this._init();
     }
   });
 
@@ -139,13 +139,10 @@ define([
     return this.el.remove();
   };
 
-  Popover.prototype._t = function() {
+  Popover.prototype._t = function(name) {
     var args, ref, result;
     args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-    result = Module.prototype._t.apply(this, args);
-    if (!result) {
-      result = (ref = this.button)._t.apply(ref, args);
-    }
+    result = i18n.translate.apply(i18n, args);
     return result;
   };
 

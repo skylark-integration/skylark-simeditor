@@ -1,11 +1,9 @@
 define([
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "./ListButton"
-],function($,extend,SimpleModule,Toolbar,Simditor,ListButton){ 
+],function($,Toolbar,Simditor,ListButton){ 
   var OrderListButton = ListButton.inherit({
 
    });

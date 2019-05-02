@@ -5,5 +5,5 @@
  * @link https://github.com/skylark-integration/skylark-simditor/
  * @license MIT
  */
-define(["skylark-jquery","../_extend","../Module","../Toolbar","../Simditor","./ListButton"],function(t,o,i,e,r,l){var n=l.inherit({});return n.prototype.type="ul",n.prototype.name="ul",n.prototype.icon="list-ul",n.prototype.htmlTag="ul",n.prototype.shortcut="cmd+.",n.prototype._init=function(){return this.editor.util.os.mac?this.title=this.title+" ( Cmd + . )":(this.title=this.title+" ( Ctrl + . )",this.shortcut="ctrl+."),l.prototype._init.call(this)},r.Toolbar.addButton(n),n});
+define(["skylark-jquery","../Toolbar","../Simditor","./ListButton"],function(t,o,i,r){var e=r.inherit({});return e.prototype.type="ul",e.prototype.name="ul",e.prototype.icon="list-ul",e.prototype.htmlTag="ul",e.prototype.shortcut="cmd+.",e.prototype._init=function(){return this.editor.util.os.mac?this.title=this.title+" ( Cmd + . )":(this.title=this.title+" ( Ctrl + . )",this.shortcut="ctrl+."),r.prototype._init.call(this)},i.Toolbar.addButton(e),e});
 //# sourceMappingURL=../sourcemaps/buttons/UnorderListButton.js.map

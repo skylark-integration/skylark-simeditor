@@ -1,9 +1,8 @@
 define([
-  "skylark-jquery",
-  "./_extend",
-  "./Module"
-],function($,extend,Module){ 
-  var Util = Module.inherit({
+  "skylark-langx/langx",
+  "skylark-jquery"
+],function(langx,$){ 
+  var Util = langx.Evented.inherit({
     init : function(editor) {
       this.editor = editor; // this._module;
       if (this.browser.msie && this.browser.version < 11) {

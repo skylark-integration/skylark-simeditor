@@ -1,18 +1,17 @@
 define([
+  "skylark-langx/langx",
   "skylark-jquery",
-  "./_extend",
-  "./Module",
   "./Simditor",
   "./i18n"
-],function($,extend,Module,Simditor,i18n){ 
+],function(langx, $,Simditor,i18n){ 
   var slice = [].slice;
 
-  var Button = Module.inherit( {
+  var Button = langx.Evented.inherit( {
     init : function(opts) {
       this.toolbar = opts.toolbar;
       this.editor = opts.toolbar.editor;
       this.title = i18n.translate(this.name);
-      Module.prototype.init.call(this, opts);
+      this._init();
     }
   }); 
 

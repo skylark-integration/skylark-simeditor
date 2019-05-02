@@ -5,5 +5,5 @@
  * @link https://github.com/skylark-integration/skylark-simditor/
  * @license MIT
  */
-define(["skylark-jquery","../_extend","../Module","../Toolbar","../Simditor","./ListButton"],function(t,o,i,e,r,l){var n=l.inherit({});return n.prototype.type="ol",n.prototype.name="ol",n.prototype.icon="list-ol",n.prototype.htmlTag="ol",n.prototype.shortcut="cmd+/",n.prototype._init=function(){return this.editor.util.os.mac?this.title=this.title+" ( Cmd + / )":(this.title=this.title+" ( ctrl + / )",this.shortcut="ctrl+/"),l.prototype._init.call(this)},r.Toolbar.addButton(n),n});
+define(["skylark-jquery","../Toolbar","../Simditor","./ListButton"],function(t,o,i,r){var e=r.inherit({});return e.prototype.type="ol",e.prototype.name="ol",e.prototype.icon="list-ol",e.prototype.htmlTag="ol",e.prototype.shortcut="cmd+/",e.prototype._init=function(){return this.editor.util.os.mac?this.title=this.title+" ( Cmd + / )":(this.title=this.title+" ( ctrl + / )",this.shortcut="ctrl+/"),r.prototype._init.call(this)},i.Toolbar.addButton(e),e});
 //# sourceMappingURL=../sourcemaps/buttons/OrderListButton.js.map

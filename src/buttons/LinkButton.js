@@ -1,12 +1,11 @@
 define([
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button",
   "./LinkPopover"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button,LinkPopover){ 
+],function($,Toolbar,Simditor,Button,LinkPopover){ 
+  
 
   var LinkButton = Button.inherit({
 

@@ -1,11 +1,9 @@
 define([
   "skylark-jquery",
-  "../_extend",
-  "../Module",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+],function($,Toolbar,Simditor,Button){ 
   var OutdentButton = Button.inherit({
 
    });
