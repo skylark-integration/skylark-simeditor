@@ -4,8 +4,9 @@ define([
   "../Module",
   "../Toolbar",
   "../Simditor",
-  "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+  "../Button",
+  "../i18n"
+],function($,extend,SimpleModule,Toolbar,Simditor,Button,i18n){ 
   var TitleButton = Button.inherit({
 
    });
@@ -20,27 +21,27 @@ define([
     this.menu = [
       {
         name: 'normal',
-        text: this._t('normalText'),
+        text: i18n.translate('normalText'),
         param: 'p'
       }, '|', {
         name: 'h1',
-        text: this._t('title') + ' 1',
+        text: i18n.translate('title') + ' 1',
         param: 'h1'
       }, {
         name: 'h2',
-        text: this._t('title') + ' 2',
+        text: i18n.translate('title') + ' 2',
         param: 'h2'
       }, {
         name: 'h3',
-        text: this._t('title') + ' 3',
+        text: i18n.translate('title') + ' 3',
         param: 'h3'
       }, {
         name: 'h4',
-        text: this._t('title') + ' 4',
+        text: i18n.translate('title') + ' 4',
         param: 'h4'
       }, {
         name: 'h5',
-        text: this._t('title') + ' 5',
+        text: i18n.translate('title') + ' 5',
         param: 'h5'
       }
     ];

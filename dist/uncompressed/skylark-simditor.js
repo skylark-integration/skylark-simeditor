@@ -91,9 +91,8 @@ define([], function () {
     var exports = {};
     var module = { exports: {} };
     define([
+        'skylark-langx/langx',
         'skylark-jquery',
-        './_extend',
-        './Module',
         './hotkeys',
         './uploader',
         './Util',
@@ -106,8 +105,77 @@ define([], function () {
         './Indentation',
         './Clipboard',
         './i18n'
-    ], function ($, extend, Module, hotkeys, uploader, Util, InputManager, Selection, UndoManager, Keystroke, Formatter, Toolbar, Indentation, Clipboard, i18n) {
-        var Simditor = Module.inherit({});
+    ], function (langx, $, hotkeys, uploader, Util, InputManager, Selection, UndoManager, Keystroke, Formatter, Toolbar, Indentation, Clipboard, i18n) {
+        var Simditor = langx.Evented.inherit({
+            init: function (opts) {
+                this.opts = $.extend({}, this.opts, opts);
+                this.util = new Util(this);
+                var e, editor, uploadOpts;
+                this.textarea = $(this.opts.textarea);
+                this.opts.placeholder = this.opts.placeholder || this.textarea.attr('placeholder');
+                if (!this.textarea.length) {
+                    throw new Error('simditor: param textarea is required.');
+                    return;
+                }
+                editor = this.textarea.data('simditor');
+                if (editor != null) {
+                    editor.destroy();
+                }
+                this.id = ++Simditor.count;
+                this._render();
+                if (hotkeys) {
+                    this.hotkeys = hotkeys({ el: this.body });
+                } else {
+                    throw new Error('simditor: simple-hotkeys is required.');
+                    return;
+                }
+                if (this.opts.upload && uploader) {
+                    uploadOpts = typeof this.opts.upload === 'object' ? this.opts.upload : {};
+                    this.uploader = uploader(uploadOpts);
+                }
+                this.inputManager = new InputManager(this);
+                this.selection = new Selection(this);
+                this.undoManager = new UndoManager(this);
+                this.keystroke = new Keystroke(this);
+                this.formatter = new Formatter(this);
+                this.toolbar = new Toolbar(this, {
+                    toolbar: this.opts.toolbar,
+                    toolbarFloat: this.opts.toolbarFloat,
+                    toolbarHidden: this.opts.toolbarHidden,
+                    toolbarFloatOffset: this.opts.toolbarFloatOffset
+                });
+                this.indentation = new Indentation(this);
+                this.clipboard = new Clipboard(this);
+                var self = this;
+                if (this.opts.placeholder) {
+                    this.on('valuechanged', function () {
+                        return self._placeholder();
+                    });
+                }
+                this.setValue(this.textarea.val().trim() || '');
+                if (this.textarea.attr('autofocus')) {
+                    return self.focus();
+                }
+                if (this.util.browser.mozilla) {
+                    this.util.reflow();
+                    try {
+                        document.execCommand('enableObjectResizing', false, false);
+                        return document.execCommand('enableInlineTableEditing', false, false);
+                    } catch (_error) {
+                        e = _error;
+                    }
+                }
+            }
+        });
+        Simditor.prototype.triggerHandler = Simditor.prototype.trigger = function (type, data) {
+            var args, ref;
+            args = [type];
+            if (data) {
+                args = args.concat(data);
+            }
+            langx.Evented.prototype.trigger.apply(this, args);
+            return this;
+        };
         Simditor.count = 0;
         Simditor.prototype.opts = {
             textarea: null,
@@ -116,62 +184,6 @@ define([], function () {
             params: {},
             upload: false,
             indentWidth: 40
-        };
-        Simditor.prototype._init = function () {
-            this.util = new Util(this);
-            var e, editor, uploadOpts;
-            this.textarea = $(this.opts.textarea);
-            this.opts.placeholder = this.opts.placeholder || this.textarea.attr('placeholder');
-            if (!this.textarea.length) {
-                throw new Error('simditor: param textarea is required.');
-                return;
-            }
-            editor = this.textarea.data('simditor');
-            if (editor != null) {
-                editor.destroy();
-            }
-            this.id = ++Simditor.count;
-            this._render();
-            if (hotkeys) {
-                this.hotkeys = hotkeys({ el: this.body });
-            } else {
-                throw new Error('simditor: simple-hotkeys is required.');
-                return;
-            }
-            if (this.opts.upload && uploader) {
-                uploadOpts = typeof this.opts.upload === 'object' ? this.opts.upload : {};
-                this.uploader = uploader(uploadOpts);
-            }
-            this.on('initialized', function (_this) {
-                return function () {
-                    if (_this.opts.placeholder) {
-                        _this.on('valuechanged', function () {
-                            return _this._placeholder();
-                        });
-                    }
-                    _this.setValue(_this.textarea.val().trim() || '');
-                    if (_this.textarea.attr('autofocus')) {
-                        return _this.focus();
-                    }
-                };
-            }(this));
-            if (this.util.browser.mozilla) {
-                this.util.reflow();
-                try {
-                    document.execCommand('enableObjectResizing', false, false);
-                    return document.execCommand('enableInlineTableEditing', false, false);
-                } catch (_error) {
-                    e = _error;
-                }
-            }
-            this.inputManager = new InputManager(this);
-            this.selection = new Selection(this);
-            this.undoManager = new UndoManager(this);
-            this.keystroke = new Keystroke(this);
-            this.formatter = new Formatter(this);
-            this.toolbar = new Toolbar(this);
-            this.indentation = new Indentation(this);
-            this.clipboard = new Clipboard(this);
         };
         Simditor.prototype._tpl = '<div class="simditor">\n  <div class="simditor-wrapper">\n    <div class="simditor-placeholder"></div>\n    <div class="simditor-body" contenteditable="true">\n    </div>\n  </div>\n</div>';
         Simditor.prototype._render = function () {
@@ -506,19 +518,153 @@ define('skylark-simditor/Module',[
 
 });
 
+define('skylark-simditor/i18n',[
+
+],function(){ 
+
+    var i18n =  {
+      'zh-CN': {
+        'blockquote': '引用',
+        'bold': '加粗文字',
+        'code': '插入代码',
+        'color': '文字颜色',
+        'coloredText': '彩色文字',
+        'hr': '分隔线',
+        'image': '插入图片',
+        'externalImage': '外链图片',
+        'uploadImage': '上传图片',
+        'uploadFailed': '上传失败了',
+        'uploadError': '上传出错了',
+        'imageUrl': '图片地址',
+        'imageSize': '图片尺寸',
+        'imageAlt': '图片描述',
+        'restoreImageSize': '还原图片尺寸',
+        'uploading': '正在上传',
+        'indent': '向右缩进',
+        'outdent': '向左缩进',
+        'italic': '斜体文字',
+        'link': '插入链接',
+        'linkText': '链接文字',
+        'linkUrl': '链接地址',
+        'linkTarget': '打开方式',
+        'openLinkInCurrentWindow': '在当前窗口中打开',
+        'openLinkInNewWindow': '在新窗口中打开',
+        'removeLink': '移除链接',
+        'ol': '有序列表',
+        'ul': '无序列表',
+        'strikethrough': '删除线文字',
+        'table': '表格',
+        'deleteRow': '删除行',
+        'insertRowAbove': '在上面插入行',
+        'insertRowBelow': '在下面插入行',
+        'deleteColumn': '删除列',
+        'insertColumnLeft': '在左边插入列',
+        'insertColumnRight': '在右边插入列',
+        'deleteTable': '删除表格',
+        'title': '标题',
+        'normalText': '普通文本',
+        'underline': '下划线文字',
+        'alignment': '水平对齐',
+        'alignCenter': '居中',
+        'alignLeft': '居左',
+        'alignRight': '居右',
+        'selectLanguage': '选择程序语言',
+        'fontScale': '字体大小',
+        'fontScaleXLarge': '超大字体',
+        'fontScaleLarge': '大号字体',
+        'fontScaleNormal': '正常大小',
+        'fontScaleSmall': '小号字体',
+        'fontScaleXSmall': '超小字体'
+      },
+      'en-US': {
+        'blockquote': 'Block Quote',
+        'bold': 'Bold',
+        'code': 'Code',
+        'color': 'Text Color',
+        'coloredText': 'Colored Text',
+        'hr': 'Horizontal Line',
+        'image': 'Insert Image',
+        'externalImage': 'External Image',
+        'uploadImage': 'Upload Image',
+        'uploadFailed': 'Upload failed',
+        'uploadError': 'Error occurs during upload',
+        'imageUrl': 'Url',
+        'imageSize': 'Size',
+        'imageAlt': 'Alt',
+        'restoreImageSize': 'Restore Origin Size',
+        'uploading': 'Uploading',
+        'indent': 'Indent',
+        'outdent': 'Outdent',
+        'italic': 'Italic',
+        'link': 'Insert Link',
+        'linkText': 'Text',
+        'linkUrl': 'Url',
+        'linkTarget': 'Target',
+        'openLinkInCurrentWindow': 'Open link in current window',
+        'openLinkInNewWindow': 'Open link in new window',
+        'removeLink': 'Remove Link',
+        'ol': 'Ordered List',
+        'ul': 'Unordered List',
+        'strikethrough': 'Strikethrough',
+        'table': 'Table',
+        'deleteRow': 'Delete Row',
+        'insertRowAbove': 'Insert Row Above',
+        'insertRowBelow': 'Insert Row Below',
+        'deleteColumn': 'Delete Column',
+        'insertColumnLeft': 'Insert Column Left',
+        'insertColumnRight': 'Insert Column Right',
+        'deleteTable': 'Delete Table',
+        'title': 'Title',
+        'normalText': 'Text',
+        'underline': 'Underline',
+        'alignment': 'Alignment',
+        'alignCenter': 'Align Center',
+        'alignLeft': 'Align Left',
+        'alignRight': 'Align Right',
+        'selectLanguage': 'Select Language',
+        'fontScale': 'Font Size',
+        'fontScaleXLarge': 'X Large Size',
+        'fontScaleLarge': 'Large Size',
+        'fontScaleNormal': 'Normal Size',
+        'fontScaleSmall': 'Small Size',
+        'fontScaleXSmall': 'X Small Size'
+      },
+
+      translate : function() {
+        var args, key, ref, result;
+        key = arguments[0], args = 2 <= arguments.length ? Array.prototype.slice.call(arguments, 1) : [];
+        result = ((ref = i18n[this.locale]) != null ? ref[key] : void 0) || '';
+        if (!(args.length > 0)) {
+          return result;
+        }
+        result = result.replace(/([^%]|^)%(?:(\d+)\$)?s/g, function(p0, p, position) {
+          if (position) {
+            return p + args[parseInt(position) - 1];
+          } else {
+            return p + args.shift();
+          }
+        });
+        return result.replace(/%%s/g, '%s');
+      }
+
+    };
+
+    return i18n;
+});
 define('skylark-simditor/Button',[
   "skylark-jquery",
   "./_extend",
   "./Module",
-  "./Simditor"
-],function($,extend,Module,Simditor){ 
+  "./Simditor",
+  "./i18n"
+],function($,extend,Module,Simditor,i18n){ 
   var slice = [].slice;
 
   var Button = Module.inherit( {
     init : function(opts) {
       this.toolbar = opts.toolbar;
       this.editor = opts.toolbar.editor;
-      this.title = this._t(this.name);
+      this.title = i18n.translate(this.name);
       Module.prototype.init.call(this, opts);
     }
   }); 
@@ -744,16 +890,8 @@ define('skylark-simditor/Button',[
 
   Button.prototype.command = function(param) {};
 
-  Button.prototype._t = function() {
-    var args, ref, result;
-    args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-    result = Module.prototype._t.apply(this, args);
-    if (!result) {
-      result = (ref = this.editor)._t.apply(ref, args);
-    }
-    return result;
-  };
-
+  Button.prototype._t = i18n.translate;
+  
 
   Simditor.Button = Button;
 
@@ -922,9 +1060,11 @@ define('skylark-simditor/Toolbar',[
 ],function(langx,$){ 
 
   var Toolbar = langx.Evented.inherit({
-    init : function(editor) {
+    init : function(editor,opts) {
       var floatInitialized, initToolbarFloat, toolbarHeight;
       this.editor = editor;
+
+      this.opts = $.extend({}, this.opts, opts);
 
       if (!this.opts.toolbar) {
         return;
@@ -3600,8 +3740,9 @@ define('skylark-simditor/buttons/TitleButton',[
   "../Module",
   "../Toolbar",
   "../Simditor",
-  "../Button"
-],function($,extend,SimpleModule,Toolbar,Simditor,Button){ 
+  "../Button",
+  "../i18n"
+],function($,extend,SimpleModule,Toolbar,Simditor,Button,i18n){ 
   var TitleButton = Button.inherit({
 
    });
@@ -3616,27 +3757,27 @@ define('skylark-simditor/buttons/TitleButton',[
     this.menu = [
       {
         name: 'normal',
-        text: this._t('normalText'),
+        text: i18n.translate('normalText'),
         param: 'p'
       }, '|', {
         name: 'h1',
-        text: this._t('title') + ' 1',
+        text: i18n.translate('title') + ' 1',
         param: 'h1'
       }, {
         name: 'h2',
-        text: this._t('title') + ' 2',
+        text: i18n.translate('title') + ' 2',
         param: 'h2'
       }, {
         name: 'h3',
-        text: this._t('title') + ' 3',
+        text: i18n.translate('title') + ' 3',
         param: 'h3'
       }, {
         name: 'h4',
-        text: this._t('title') + ' 4',
+        text: i18n.translate('title') + ' 4',
         param: 'h4'
       }, {
         name: 'h5',
-        text: this._t('title') + ' 5',
+        text: i18n.translate('title') + ' 5',
         param: 'h5'
       }
     ];

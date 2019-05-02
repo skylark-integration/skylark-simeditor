@@ -4,9 +4,11 @@ define([
 ],function(langx,$){ 
 
   var Toolbar = langx.Evented.inherit({
-    init : function(editor) {
+    init : function(editor,opts) {
       var floatInitialized, initToolbarFloat, toolbarHeight;
       this.editor = editor;
+
+      this.opts = $.extend({}, this.opts, opts);
 
       if (!this.opts.toolbar) {
         return;

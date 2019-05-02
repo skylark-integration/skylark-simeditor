@@ -2,15 +2,16 @@ define([
   "skylark-jquery",
   "./_extend",
   "./Module",
-  "./Simditor"
-],function($,extend,Module,Simditor){ 
+  "./Simditor",
+  "./i18n"
+],function($,extend,Module,Simditor,i18n){ 
   var slice = [].slice;
 
   var Button = Module.inherit( {
     init : function(opts) {
       this.toolbar = opts.toolbar;
       this.editor = opts.toolbar.editor;
-      this.title = this._t(this.name);
+      this.title = i18n.translate(this.name);
       Module.prototype.init.call(this, opts);
     }
   }); 
@@ -236,16 +237,8 @@ define([
 
   Button.prototype.command = function(param) {};
 
-  Button.prototype._t = function() {
-    var args, ref, result;
-    args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-    result = Module.prototype._t.apply(this, args);
-    if (!result) {
-      result = (ref = this.editor)._t.apply(ref, args);
-    }
-    return result;
-  };
-
+  Button.prototype._t = i18n.translate;
+  
 
   Simditor.Button = Button;
 

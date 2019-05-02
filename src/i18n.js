@@ -2,7 +2,7 @@ define([
 
 ],function(){ 
 
-    return {
+    var i18n =  {
       'zh-CN': {
         'blockquote': '引用',
         'bold': '加粗文字',
@@ -108,6 +108,26 @@ define([
         'fontScaleNormal': 'Normal Size',
         'fontScaleSmall': 'Small Size',
         'fontScaleXSmall': 'X Small Size'
+      },
+
+      translate : function() {
+        var args, key, ref, result;
+        key = arguments[0], args = 2 <= arguments.length ? Array.prototype.slice.call(arguments, 1) : [];
+        result = ((ref = i18n[this.locale]) != null ? ref[key] : void 0) || '';
+        if (!(args.length > 0)) {
+          return result;
+        }
+        result = result.replace(/([^%]|^)%(?:(\d+)\$)?s/g, function(p0, p, position) {
+          if (position) {
+            return p + args[parseInt(position) - 1];
+          } else {
+            return p + args.shift();
+          }
+        });
+        return result.replace(/%%s/g, '%s');
       }
+
     };
+
+    return i18n;
 });
