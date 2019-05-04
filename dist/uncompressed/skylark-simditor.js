@@ -92,7 +92,7 @@ define([], function () {
     var module = { exports: {} };
     define([
         'skylark-langx/langx',
-        'skylark-jquery',
+        'skylark-utils-dom/query',
         './hotkeys',
         './uploader',
         './Util',
@@ -463,7 +463,7 @@ define('skylark-simditor/i18n',[
 });
 define('skylark-simditor/Button',[
   "skylark-langx/langx",
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "./Simditor",
   "./i18n"
 ],function(langx, $,Simditor,i18n){ 
@@ -708,7 +708,7 @@ define('skylark-simditor/Button',[
 });
 define('skylark-simditor/Popover',[
   "skylark-langx/langx",
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "./Simditor",
   "./i18n"
 ],function(langx,$,Simditor,i18n){ 
@@ -862,7 +862,7 @@ define('skylark-simditor/Popover',[
 });
 define('skylark-simditor/Toolbar',[
   "skylark-langx/langx",
-  "skylark-jquery"
+  "skylark-utils-dom/query"
 ],function(langx,$){ 
 
   var Toolbar = langx.Evented.inherit({
@@ -1007,7 +1007,7 @@ define('skylark-simditor/Toolbar',[
 
 });
 define('skylark-simditor/buttons/AlignmentButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button"
@@ -1093,7 +1093,7 @@ define('skylark-simditor/buttons/AlignmentButton',[
 
 });
 define('skylark-simditor/buttons/BlockquoteButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button"
@@ -1156,7 +1156,7 @@ define('skylark-simditor/buttons/BlockquoteButton',[
 
 });
 define('skylark-simditor/buttons/BoldButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button"
@@ -1208,7 +1208,7 @@ define('skylark-simditor/buttons/BoldButton',[
 
 });
 define('skylark-simditor/buttons/CodePopover',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Popover"
@@ -1334,7 +1334,7 @@ define('skylark-simditor/buttons/CodePopover',[
 
 });
 define('skylark-simditor/buttons/CodeButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button",
@@ -1498,7 +1498,7 @@ define('skylark-simditor/buttons/CodeButton',[
 
 });
 define('skylark-simditor/buttons/ColorButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button"
@@ -1594,11 +1594,12 @@ define('skylark-simditor/buttons/ColorButton',[
 	
 });
 define('skylark-simditor/buttons/FontScaleButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
-  "../Button"
-],function($,Toolbar,Simditor,Button){ 
+  "../Button",
+  "../i18n"
+],function($,Toolbar,Simditor,Button,i18n){ 
   
    var FontScaleButton = Button.inherit({
 
@@ -1625,23 +1626,23 @@ define('skylark-simditor/buttons/FontScaleButton',[
     this.menu = [
       {
         name: '150%',
-        text: this._t('fontScaleXLarge'),
+        text: i18n.translate('fontScaleXLarge'),
         param: '5'
       }, {
         name: '125%',
-        text: this._t('fontScaleLarge'),
+        text: i18n.translate('fontScaleLarge'),
         param: '4'
       }, {
         name: '100%',
-        text: this._t('fontScaleNormal'),
+        text: i18n.translate('fontScaleNormal'),
         param: '3'
       }, {
         name: '75%',
-        text: this._t('fontScaleSmall'),
+        text: i18n.translate('fontScaleSmall'),
         param: '2'
       }, {
         name: '50%',
-        text: this._t('fontScaleXSmall'),
+        text: i18n.translate('fontScaleXSmall'),
         param: '1'
       }
     ];
@@ -1703,7 +1704,7 @@ define('skylark-simditor/buttons/FontScaleButton',[
 
 });
 define('skylark-simditor/buttons/HrButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button"
@@ -1749,7 +1750,7 @@ define('skylark-simditor/buttons/HrButton',[
 });
 define('skylark-simditor/buttons/ImagePopover',[
   "skylark-langx/langx",
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Popover"
@@ -1995,7 +1996,7 @@ define('skylark-simditor/buttons/ImagePopover',[
 });
 define('skylark-simditor/buttons/ImageButton',[
   "skylark-langx/langx",
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button",
@@ -2420,7 +2421,7 @@ define('skylark-simditor/buttons/ImageButton',[
 
 });
 define('skylark-simditor/buttons/IndentButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button"
@@ -2453,7 +2454,7 @@ define('skylark-simditor/buttons/IndentButton',[
   return IndentButton;
 });
 define('skylark-simditor/buttons/ItalicButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button"
@@ -2506,7 +2507,7 @@ define('skylark-simditor/buttons/ItalicButton',[
 
 });
 define('skylark-simditor/buttons/LinkPopover',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Popover"
@@ -2589,7 +2590,7 @@ define('skylark-simditor/buttons/LinkPopover',[
 
 });
 define('skylark-simditor/buttons/LinkButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button",
@@ -2673,7 +2674,7 @@ define('skylark-simditor/buttons/LinkButton',[
 });
 define('skylark-simditor/buttons/ListButton',[
   "skylark-utils-dom/noder",
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button"
@@ -2728,7 +2729,7 @@ define('skylark-simditor/buttons/ListButton',[
 	
 });
 define('skylark-simditor/buttons/OrderListButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "./ListButton"
@@ -2764,7 +2765,7 @@ define('skylark-simditor/buttons/OrderListButton',[
 	
 });
 define('skylark-simditor/buttons/OutdentButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button"
@@ -2797,7 +2798,7 @@ define('skylark-simditor/buttons/OutdentButton',[
 
 });
 define('skylark-simditor/buttons/StrikethroughButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button"
@@ -3192,7 +3193,7 @@ define('skylark-utils-dom/tables',[
 define('skylark-simditor/buttons/TableButton',[
   "skylark-langx/langx",
   "skylark-utils-dom/tables",
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button"
@@ -3518,7 +3519,7 @@ define('skylark-simditor/buttons/TableButton',[
 
 });
 define('skylark-simditor/buttons/TitleButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button",
@@ -3600,7 +3601,7 @@ define('skylark-simditor/buttons/TitleButton',[
 
 });
 define('skylark-simditor/buttons/UnderlineButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button"
@@ -3652,7 +3653,7 @@ define('skylark-simditor/buttons/UnderlineButton',[
 
 });
 define('skylark-simditor/buttons/UnorderListButton',[
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "./ListButton"

@@ -1,7 +1,7 @@
 define([
   "skylark-langx/langx",
   "skylark-utils-dom/noder",
-  "skylark-jquery"
+  "skylark-utils-dom/query"
 ],function(langx,noder,$){ 
 
   var Selection = langx.Evented.inherit({

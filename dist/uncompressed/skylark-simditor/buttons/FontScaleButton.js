@@ -1,9 +1,10 @@
 define([
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
-  "../Button"
-],function($,Toolbar,Simditor,Button){ 
+  "../Button",
+  "../i18n"
+],function($,Toolbar,Simditor,Button,i18n){ 
   
    var FontScaleButton = Button.inherit({
 
@@ -30,23 +31,23 @@ define([
     this.menu = [
       {
         name: '150%',
-        text: this._t('fontScaleXLarge'),
+        text: i18n.translate('fontScaleXLarge'),
         param: '5'
       }, {
         name: '125%',
-        text: this._t('fontScaleLarge'),
+        text: i18n.translate('fontScaleLarge'),
         param: '4'
       }, {
         name: '100%',
-        text: this._t('fontScaleNormal'),
+        text: i18n.translate('fontScaleNormal'),
         param: '3'
       }, {
         name: '75%',
-        text: this._t('fontScaleSmall'),
+        text: i18n.translate('fontScaleSmall'),
         param: '2'
       }, {
         name: '50%',
-        text: this._t('fontScaleXSmall'),
+        text: i18n.translate('fontScaleXSmall'),
         param: '1'
       }
     ];

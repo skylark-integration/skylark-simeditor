@@ -1,6 +1,6 @@
 define([
   "skylark-langx/langx",
-  "skylark-jquery"
+  "skylark-utils-dom/query"
 ],function(langx,$){ 
   var Util = langx.Evented.inherit({
     init : function(editor) {

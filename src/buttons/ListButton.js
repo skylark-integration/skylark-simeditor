@@ -1,6 +1,6 @@
 define([
   "skylark-utils-dom/noder",
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Button"

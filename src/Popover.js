@@ -1,6 +1,6 @@
 define([
   "skylark-langx/langx",
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "./Simditor",
   "./i18n"
 ],function(langx,$,Simditor,i18n){ 

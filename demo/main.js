@@ -1,22 +1,16 @@
 require.config({
   baseUrl: "./"
-  ,map: {
-    '*': {
-      'jquery': 'skylark-jquery/core'
-    }
-  }
   , shim: {
   }
   ,packages : [
      { name: "skylark-langx", location: "../node_modules/skylark-langx/dist/uncompressed/skylark-langx" },
      { name: "skylark-utils-dom", location: "../node_modules/skylark-utils-dom/dist/uncompressed/skylark-utils-dom"},
-     { name: "skylark-jquery", location: "../node_modules/skylark-jquery/dist/uncompressed/skylark-jquery"},
      { name: "skylark-simeditor", location: "../src" }
   ],
 });
  
 require([
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "skylark-simeditor"
 
 ],function($,Simditor){

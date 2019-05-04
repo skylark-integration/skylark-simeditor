@@ -4,7 +4,7 @@ define([], function () {
     var module = { exports: {} };
     define([
         'skylark-langx/langx',
-        'skylark-jquery',
+        'skylark-utils-dom/query',
         './hotkeys',
         './uploader',
         './Util',

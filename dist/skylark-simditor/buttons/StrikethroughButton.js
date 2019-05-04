@@ -5,5 +5,5 @@
  * @link https://github.com/skylark-integration/skylark-simditor/
  * @license MIT
  */
-define(["skylark-jquery","../Toolbar","../Simditor","../Button"],function(t,e,o,r){var i=r.inherit({});return i.prototype.name="strikethrough",i.prototype.icon="strikethrough",i.prototype.htmlTag="strike",i.prototype.disableTag="pre",i.prototype._activeStatus=function(){var t;return t=!0===document.queryCommandState("strikethrough"),this.setActive(t),this.active},i.prototype.command=function(){return document.execCommand("strikethrough"),this.editor.util.support.oninput||this.editor.trigger("valuechanged"),t(document).trigger("selectionchange")},o.Toolbar.addButton(i),i});
+define(["skylark-utils-dom/query","../Toolbar","../Simditor","../Button"],function(t,e,o,r){var i=r.inherit({});return i.prototype.name="strikethrough",i.prototype.icon="strikethrough",i.prototype.htmlTag="strike",i.prototype.disableTag="pre",i.prototype._activeStatus=function(){var t;return t=!0===document.queryCommandState("strikethrough"),this.setActive(t),this.active},i.prototype.command=function(){return document.execCommand("strikethrough"),this.editor.util.support.oninput||this.editor.trigger("valuechanged"),t(document).trigger("selectionchange")},o.Toolbar.addButton(i),i});
 //# sourceMappingURL=../sourcemaps/buttons/StrikethroughButton.js.map

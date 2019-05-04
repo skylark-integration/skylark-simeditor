@@ -1,5 +1,5 @@
 define([
-  "skylark-jquery",
+  "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
   "../Popover"
