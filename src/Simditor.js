@@ -18,7 +18,7 @@ define([
 
   var Simditor = langx.Evented.inherit({
     init : function(opts) {
-      this.opts = $.extend({}, this.opts, opts);
+      this.opts = langx.extend({}, this.opts, opts);
 
       this.util = new Util(this);
 
@@ -213,7 +213,7 @@ define([
       emptyP.remove();
     }
     cloneBody.find('img.uploading').remove();
-    val = $.trim(cloneBody.html());
+    val = langx.trim(cloneBody.html());
     this.textarea.val(val);
     return val;
   };

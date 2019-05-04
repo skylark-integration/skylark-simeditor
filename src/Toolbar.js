@@ -8,12 +8,12 @@ define([
       var floatInitialized, initToolbarFloat, toolbarHeight;
       this.editor = editor;
 
-      this.opts = $.extend({}, this.opts, opts);
+      this.opts = langx.extend({}, this.opts, opts);
 
       if (!this.opts.toolbar) {
         return;
       }
-      if (!$.isArray(this.opts.toolbar)) {
+      if (!langx.isArray(this.opts.toolbar)) {
         this.opts.toolbar = ['bold', 'italic', 'underline', 'strikethrough', '|', 'ol', 'ul', 'blockquote', 'code', '|', 'link', 'image', '|', 'indent', 'outdent'];
       }
       this._render();

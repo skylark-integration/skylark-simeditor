@@ -245,11 +245,11 @@ define([
       return new Array(n + 1).join(str);
     };
     while ((match = re.exec(html)) !== null) {
-      match.isBlockNode = $.inArray(match[2], this.blockNodes) > -1;
+      match.isBlockNode = langx.inArray(match[2], this.blockNodes) > -1;
       match.isStartTag = match[1] !== '/' && match[3] !== '/';
       match.isEndTag = match[1] === '/' || match[3] === '/';
       cursor = lastMatch ? lastMatch.index + lastMatch[0].length : 0;
-      if ((str = html.substring(cursor, match.index)).length > 0 && $.trim(str)) {
+      if ((str = html.substring(cursor, match.index)).length > 0 && langx.trim(str)) {
         result += str;
       }
       if (match.isBlockNode && match.isEndTag && !match.isStartTag) {
@@ -270,7 +270,7 @@ define([
       }
       lastMatch = match;
     }
-    return $.trim(result);
+    return langx.trim(result);
   };
 
   return Util;

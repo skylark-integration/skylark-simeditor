@@ -108,7 +108,7 @@ define([], function () {
     ], function (langx, $, hotkeys, uploader, Util, InputManager, Selection, UndoManager, Keystroke, Formatter, Toolbar, Indentation, Clipboard, i18n) {
         var Simditor = langx.Evented.inherit({
             init: function (opts) {
-                this.opts = $.extend({}, this.opts, opts);
+                this.opts = langx.extend({}, this.opts, opts);
                 this.util = new Util(this);
                 var e, editor, uploadOpts;
                 this.textarea = $(this.opts.textarea);
@@ -260,7 +260,7 @@ define([], function () {
                 emptyP.remove();
             }
             cloneBody.find('img.uploading').remove();
-            val = $.trim(cloneBody.html());
+            val = langx.trim(cloneBody.html());
             this.textarea.val(val);
             return val;
         };
@@ -582,8 +582,8 @@ define('skylark-simditor/Button',[
     ref = this.htmlTag.split(',');
     for (k = 0, len = ref.length; k < len; k++) {
       tag = ref[k];
-      tag = $.trim(tag);
-      if (tag && $.inArray(tag, this.editor.formatter._allowedTags) < 0) {
+      tag = langx.trim(tag);
+      if (tag && langx.inArray(tag, this.editor.formatter._allowedTags) < 0) {
         this.editor.formatter._allowedTags.push(tag);
       }
     }
@@ -623,7 +623,7 @@ define('skylark-simditor/Button',[
 
   Button.prototype.renderMenu = function() {
     var $menuBtnEl, $menuItemEl, k, len, menuItem, ref, ref1, results;
-    if (!$.isArray(this.menu)) {
+    if (!langx.isArray(this.menu)) {
       return;
     }
     this.menuEl = $('<ul/>').appendTo(this.menuWrapper);
@@ -870,12 +870,12 @@ define('skylark-simditor/Toolbar',[
       var floatInitialized, initToolbarFloat, toolbarHeight;
       this.editor = editor;
 
-      this.opts = $.extend({}, this.opts, opts);
+      this.opts = langx.extend({}, this.opts, opts);
 
       if (!this.opts.toolbar) {
         return;
       }
-      if (!$.isArray(this.opts.toolbar)) {
+      if (!langx.isArray(this.opts.toolbar)) {
         this.opts.toolbar = ['bold', 'italic', 'underline', 'strikethrough', '|', 'ol', 'ul', 'blockquote', 'code', '|', 'link', 'image', '|', 'indent', 'outdent'];
       }
       this._render();
@@ -1748,11 +1748,12 @@ define('skylark-simditor/buttons/HrButton',[
 	
 });
 define('skylark-simditor/buttons/ImagePopover',[
+  "skylark-langx/langx",
   "skylark-jquery",
   "../Toolbar",
   "../Simditor",
   "../Popover"
-],function($,Toolbar,Simditor,Popover){ 
+],function(langx, $,Toolbar,Simditor,Popover){ 
    var ImagePopover = Popover.inherit({
 
    });
@@ -1899,7 +1900,7 @@ define('skylark-simditor/buttons/ImagePopover',[
       onlySetVal = false;
     }
     value = inputEl.val() * 1;
-    if (!(this.target && ($.isNumeric(value) || value < 0))) {
+    if (!(this.target && (langx.isNumber(value) || value < 0))) {
       return;
     }
     if (inputEl.is(this.widthEl)) {
@@ -1993,12 +1994,13 @@ define('skylark-simditor/buttons/ImagePopover',[
 
 });
 define('skylark-simditor/buttons/ImageButton',[
+  "skylark-langx/langx",
   "skylark-jquery",
   "../Toolbar",
   "../Simditor",
   "../Button",
   "./ImagePopover"
-],function($,Toolbar,Simditor,Button,ImagePopover){ 
+],function(langx, $,Toolbar,Simditor,Button,ImagePopover){ 
    var ImageButton = Button.inherit({
 
    });
@@ -2201,7 +2203,7 @@ define('skylark-simditor/buttons/ImageButton',[
         });
       };
     })(this));
-    uploadProgress = $.proxy(this.editor.util.throttle(function(e, file, loaded, total) {
+    uploadProgress = langx.proxy(this.editor.util.throttle(function(e, file, loaded, total) {
       var $img, $mask, percent;
       if (!file.inline) {
         return;
@@ -2235,7 +2237,7 @@ define('skylark-simditor/buttons/ImageButton',[
         }
         if (typeof result !== 'object') {
           try {
-            result = $.parseJSON(result);
+            result = JSON.parse(result);
           } catch (_error) {
             e = _error;
             result = {
@@ -2281,7 +2283,7 @@ define('skylark-simditor/buttons/ImageButton',[
         }
         if (xhr.responseText) {
           try {
-            result = $.parseJSON(xhr.responseText);
+            result = JSON.parse(xhr.responseText);
             msg = result.msg;
           } catch (_error) {
             e = _error;
@@ -2363,13 +2365,13 @@ define('skylark-simditor/buttons/ImageButton',[
           $mask.remove();
           $img.removeData('mask');
         }
-        if ($.isFunction(callback)) {
+        if (langx.isFunction(callback)) {
           return callback(img);
         }
       };
     })(this);
     img.onerror = function() {
-      if ($.isFunction(callback)) {
+      if (langx.isFunction(callback)) {
         callback(false);
       }
       $mask.remove();
@@ -2670,11 +2672,12 @@ define('skylark-simditor/buttons/LinkButton',[
 
 });
 define('skylark-simditor/buttons/ListButton',[
+  "skylark-utils-dom/noder",
   "skylark-jquery",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,Toolbar,Simditor,Button){ 
+],function(noder,$,Toolbar,Simditor,Button){ 
   var ListButton = Button.inherit({
 
    });
@@ -2694,7 +2697,7 @@ define('skylark-simditor/buttons/ListButton',[
         return function(i, node) {
           var $node;
           $node = $(node);
-          if ($node.is('blockquote, li') || $node.is(_this.disableTag) || _this.editor.util.isDecoratedNode($node) || !$.contains(document, node)) {
+          if ($node.is('blockquote, li') || $node.is(_this.disableTag) || _this.editor.util.isDecoratedNode($node) || !noder.contains(document, node)) {
             return;
           }
           if ($node.is(_this.type)) {
@@ -3187,12 +3190,13 @@ define('skylark-utils-dom/tables',[
   return dom.tables = tables;
 });
 define('skylark-simditor/buttons/TableButton',[
+  "skylark-langx/langx",
   "skylark-utils-dom/tables",
   "skylark-jquery",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function(tables,$,Toolbar,Simditor,Button){ 
+],function(langx,tables,$,Toolbar,Simditor,Button){ 
   var TableButton = Button.inherit({
 
    });
@@ -3210,12 +3214,12 @@ define('skylark-simditor/buttons/TableButton',[
 
   TableButton.prototype._init = function() {
     Button.prototype._init.call(this);
-    $.merge(this.editor.formatter._allowedTags, ['thead', 'th', 'tbody', 'tr', 'td', 'colgroup', 'col']);
-    $.extend(this.editor.formatter._allowedAttributes, {
+    langx.merge(this.editor.formatter._allowedTags, ['thead', 'th', 'tbody', 'tr', 'td', 'colgroup', 'col']);
+    langx.extend(this.editor.formatter._allowedAttributes, {
       td: ['rowspan', 'colspan'],
       col: ['width']
     });
-    $.extend(this.editor.formatter._allowedStyles, {
+    langx.extend(this.editor.formatter._allowedStyles, {
       td: ['text-align'],
       th: ['text-align']
     });

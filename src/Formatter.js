@@ -14,14 +14,14 @@ define([
 
     init : function(editor) {
       this.editor = editor; //this._module;
-      this._allowedTags = $.merge(['br', 'span', 'a', 'img', 'b', 'strong', 'i', 'strike', 'u', 'font', 'p', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'hr'], this.opts.allowedTags);
-      this._allowedAttributes = $.extend({
+      this._allowedTags = langx.merge(['br', 'span', 'a', 'img', 'b', 'strong', 'i', 'strike', 'u', 'font', 'p', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'hr'], this.opts.allowedTags);
+      this._allowedAttributes = langx.extend({
         img: ['src', 'alt', 'width', 'height', 'data-non-image'],
         a: ['href', 'target'],
         font: ['color'],
         code: ['class']
       }, this.opts.allowedAttributes);
-      this._allowedStyles = $.extend({
+      this._allowedStyles = langx.extend({
         span: ['color', 'font-size'],
         b: ['color', 'font-size'],
         i: ['color', 'font-size'],
@@ -181,7 +181,7 @@ define([
         }
         if (!isDecoration) {
           allowedAttributes = this._allowedAttributes[$node[0].tagName.toLowerCase()];
-          ref = $.makeArray($node[0].attributes);
+          ref = langx.makeArray($node[0].attributes);
           for (k = 0, len = ref.length; k < len; k++) {
             attr = ref[k];
             if (attr.name === 'style') {
@@ -249,7 +249,7 @@ define([
       ref = styleStr.split(';');
       for (k = 0, len = ref.length; k < len; k++) {
         style = ref[k];
-        style = $.trim(style);
+        style = langx.trim(style);
         pair = style.split(':');
         if (pair.length !== 2) {
           continue;
@@ -260,7 +260,7 @@ define([
           }
         }
         if (ref1 = pair[0], indexOf.call(allowedStyles, ref1) >= 0) {
-          styles[$.trim(pair[0])] = $.trim(pair[1]);
+          styles[langx.trim(pair[0])] = langx.trim(pair[1]);
         }
       }
       if (Object.keys(styles).length > 0) {

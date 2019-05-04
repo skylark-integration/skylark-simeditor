@@ -1,9 +1,10 @@
 define([
+  "skylark-langx/langx",
   "skylark-jquery",
   "../Toolbar",
   "../Simditor",
   "../Popover"
-],function($,Toolbar,Simditor,Popover){ 
+],function(langx, $,Toolbar,Simditor,Popover){ 
    var ImagePopover = Popover.inherit({
 
    });
@@ -150,7 +151,7 @@ define([
       onlySetVal = false;
     }
     value = inputEl.val() * 1;
-    if (!(this.target && ($.isNumeric(value) || value < 0))) {
+    if (!(this.target && (langx.isNumber(value) || value < 0))) {
       return;
     }
     if (inputEl.is(this.widthEl)) {

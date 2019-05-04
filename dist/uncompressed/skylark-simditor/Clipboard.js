@@ -261,7 +261,7 @@ define([
     return $node.find('[style*="font-size"]').map(function(i, el) {
       var $el;
       $el = $(el);
-      if ($.inArray($el.css('font-size'), sizeMap) < 0) {
+      if (langx.inArray($el.css('font-size'), sizeMap) < 0) {
         return $el.css('font-size', '');
       }
     });

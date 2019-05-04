@@ -20,7 +20,7 @@ define([], function () {
     ], function (langx, $, hotkeys, uploader, Util, InputManager, Selection, UndoManager, Keystroke, Formatter, Toolbar, Indentation, Clipboard, i18n) {
         var Simditor = langx.Evented.inherit({
             init: function (opts) {
-                this.opts = $.extend({}, this.opts, opts);
+                this.opts = langx.extend({}, this.opts, opts);
                 this.util = new Util(this);
                 var e, editor, uploadOpts;
                 this.textarea = $(this.opts.textarea);
@@ -172,7 +172,7 @@ define([], function () {
                 emptyP.remove();
             }
             cloneBody.find('img.uploading').remove();
-            val = $.trim(cloneBody.html());
+            val = langx.trim(cloneBody.html());
             this.textarea.val(val);
             return val;
         };

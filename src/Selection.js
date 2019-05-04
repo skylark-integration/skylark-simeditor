@@ -135,11 +135,11 @@ define([
                   $nodes = $node.parent().contents();
                   startIndex = $nodes.index($node);
                   endIndex = $nodes.index($endNode);
-                  return $.merge(nodes, $nodes.slice(startIndex, endIndex).get());
+                  return langx.merge(nodes, $nodes.slice(startIndex, endIndex).get());
                 } else {
                   $nodes = $node.parent().contents();
                   index = $nodes.index($node);
-                  return $.merge(nodes, $nodes.slice(index).get());
+                  return langx.merge(nodes, $nodes.slice(index).get());
                 }
               });
               self.endNodes().each(function(i, node) {
@@ -151,11 +151,11 @@ define([
                 } else {
                   $nodes = $node.parent().contents();
                   index = $nodes.index($node);
-                  return $.merge(nodes, $nodes.slice(0, index + 1));
+                  return langx.merge(nodes, $nodes.slice(0, index + 1));
                 }
               });
             }
-            return $($.unique(nodes));
+            return $(langx.uniq(nodes));
           };
         })(this)());
       }

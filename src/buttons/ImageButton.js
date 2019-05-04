@@ -1,10 +1,11 @@
 define([
+  "skylark-langx/langx",
   "skylark-jquery",
   "../Toolbar",
   "../Simditor",
   "../Button",
   "./ImagePopover"
-],function($,Toolbar,Simditor,Button,ImagePopover){ 
+],function(langx, $,Toolbar,Simditor,Button,ImagePopover){ 
    var ImageButton = Button.inherit({
 
    });
@@ -207,7 +208,7 @@ define([
         });
       };
     })(this));
-    uploadProgress = $.proxy(this.editor.util.throttle(function(e, file, loaded, total) {
+    uploadProgress = langx.proxy(this.editor.util.throttle(function(e, file, loaded, total) {
       var $img, $mask, percent;
       if (!file.inline) {
         return;
@@ -241,7 +242,7 @@ define([
         }
         if (typeof result !== 'object') {
           try {
-            result = $.parseJSON(result);
+            result = JSON.parse(result);
           } catch (_error) {
             e = _error;
             result = {
@@ -287,7 +288,7 @@ define([
         }
         if (xhr.responseText) {
           try {
-            result = $.parseJSON(xhr.responseText);
+            result = JSON.parse(xhr.responseText);
             msg = result.msg;
           } catch (_error) {
             e = _error;
@@ -369,13 +370,13 @@ define([
           $mask.remove();
           $img.removeData('mask');
         }
-        if ($.isFunction(callback)) {
+        if (langx.isFunction(callback)) {
           return callback(img);
         }
       };
     })(this);
     img.onerror = function() {
-      if ($.isFunction(callback)) {
+      if (langx.isFunction(callback)) {
         callback(false);
       }
       $mask.remove();

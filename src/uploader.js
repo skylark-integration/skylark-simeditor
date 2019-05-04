@@ -10,7 +10,7 @@ define([
       this.id = ++Uploader.count;
       this.on('uploadcomplete', (function(_this) {
         return function(e, file) {
-          _this.files.splice($.inArray(file, _this.files), 1);
+          _this.files.splice(langx.inArray(file, _this.files), 1);
           if (_this.queue.length > 0 && _this.files.length < _this.opts.connectionCount) {
             return _this.upload(_this.queue.shift());
           } else {
@@ -58,7 +58,7 @@ define([
     if (file == null) {
       return;
     }
-    if ($.isArray(file) || file instanceof FileList) {
+    if (langx.isArray(file) || file instanceof FileList) {
       for (i = 0, len = file.length; i < len; i++) {
         f = file[i];
         this.upload(f, opts);
@@ -68,14 +68,14 @@ define([
       if (key) {
         opts.fileKey = key;
       }
-      this.upload($.makeArray($(file)[0].files), opts);
+      this.upload(langx.makeArray($(file)[0].files), opts);
     } else if (!file.id || !file.obj) {
       file = this.getFile(file);
     }
     if (!(file && file.obj)) {
       return;
     }
-    $.extend(file, opts);
+    langx.extend(file, opts);
     if (this.files.length >= this.opts.connectionCount) {
       this.queue.push(file);
       return;
@@ -119,7 +119,9 @@ define([
         formData.append(k, v);
       }
     }
-    return file.xhr = $.ajax({
+
+    //TODO
+    return file.xhr = langx.xhr({
       url: file.url,
       data: formData,
       processData: false,
@@ -189,7 +191,7 @@ define([
 
   Uploader.prototype.readImageFile = function(fileObj, callback) {
     var fileReader, img;
-    if (!$.isFunction(callback)) {
+    if (!langx.isFunction(callback)) {
       return;
     }
     img = new Image();

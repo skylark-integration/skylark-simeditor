@@ -1,9 +1,10 @@
 define([
+  "skylark-utils-dom/noder",
   "skylark-jquery",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function($,Toolbar,Simditor,Button){ 
+],function(noder,$,Toolbar,Simditor,Button){ 
   var ListButton = Button.inherit({
 
    });
@@ -23,7 +24,7 @@ define([
         return function(i, node) {
           var $node;
           $node = $(node);
-          if ($node.is('blockquote, li') || $node.is(_this.disableTag) || _this.editor.util.isDecoratedNode($node) || !$.contains(document, node)) {
+          if ($node.is('blockquote, li') || $node.is(_this.disableTag) || _this.editor.util.isDecoratedNode($node) || !noder.contains(document, node)) {
             return;
           }
           if ($node.is(_this.type)) {

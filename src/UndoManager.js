@@ -176,7 +176,7 @@ define([
 
   UndoManager.prototype._getNodeOffset = function(node, index) {
     var $parent, merging, offset;
-    if ($.isNumeric(index)) {
+    if (langx.isNumber(index)) {
       $parent = $(node);
     } else {
       $parent = $(node).parent();

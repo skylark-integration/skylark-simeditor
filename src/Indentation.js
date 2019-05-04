@@ -1,7 +1,8 @@
 define([
   "skylark-langx/langx",
+  "skylark-utils-dom/noder",
   "skylark-jquery",
-],function(langx,$){ 
+],function(langx,noder,$){ 
 
 
   var Indentation = langx.Evented.inherit({
@@ -40,10 +41,10 @@ define([
       include = true;
       for (j = k = 0, len = nodes.length; k < len; j = ++k) {
         n = nodes[j];
-        if ($.contains(node, n)) {
+        if (noder.contains(node, n)) {
           include = false;
           break;
-        } else if ($.contains(n, node)) {
+        } else if (noder.contains(n, node)) {
           nodes.splice(j, 1, node);
           include = false;
           break;

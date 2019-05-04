@@ -1,10 +1,11 @@
 define([
+  "skylark-langx/langx",
   "skylark-utils-dom/tables",
   "skylark-jquery",
   "../Toolbar",
   "../Simditor",
   "../Button"
-],function(tables,$,Toolbar,Simditor,Button){ 
+],function(langx,tables,$,Toolbar,Simditor,Button){ 
   var TableButton = Button.inherit({
 
    });
@@ -22,12 +23,12 @@ define([
 
   TableButton.prototype._init = function() {
     Button.prototype._init.call(this);
-    $.merge(this.editor.formatter._allowedTags, ['thead', 'th', 'tbody', 'tr', 'td', 'colgroup', 'col']);
-    $.extend(this.editor.formatter._allowedAttributes, {
+    langx.merge(this.editor.formatter._allowedTags, ['thead', 'th', 'tbody', 'tr', 'td', 'colgroup', 'col']);
+    langx.extend(this.editor.formatter._allowedAttributes, {
       td: ['rowspan', 'colspan'],
       col: ['width']
     });
-    $.extend(this.editor.formatter._allowedStyles, {
+    langx.extend(this.editor.formatter._allowedStyles, {
       td: ['text-align'],
       th: ['text-align']
     });

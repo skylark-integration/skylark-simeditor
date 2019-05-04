@@ -119,8 +119,8 @@ define([
     ref = this.htmlTag.split(',');
     for (k = 0, len = ref.length; k < len; k++) {
       tag = ref[k];
-      tag = $.trim(tag);
-      if (tag && $.inArray(tag, this.editor.formatter._allowedTags) < 0) {
+      tag = langx.trim(tag);
+      if (tag && langx.inArray(tag, this.editor.formatter._allowedTags) < 0) {
         this.editor.formatter._allowedTags.push(tag);
       }
     }
@@ -160,7 +160,7 @@ define([
 
   Button.prototype.renderMenu = function() {
     var $menuBtnEl, $menuItemEl, k, len, menuItem, ref, ref1, results;
-    if (!$.isArray(this.menu)) {
+    if (!langx.isArray(this.menu)) {
       return;
     }
     this.menuEl = $('<ul/>').appendTo(this.menuWrapper);
