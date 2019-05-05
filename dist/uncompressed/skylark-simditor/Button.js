@@ -52,7 +52,7 @@ define([
       return function(e) {
         var exceed, noFocus, param;
         e.preventDefault();
-        noFocus = _this.needFocus && !_this.editor.inputManager.focused;
+        noFocus = _this.needFocus && !_this.editor.editable.inputManager.focused;
         if (_this.el.hasClass('disabled')) {
           return false;
         }
@@ -84,7 +84,7 @@ define([
         e.preventDefault();
         btn = $(e.currentTarget);
         _this.wrapper.removeClass('menu-on');
-        noFocus = _this.needFocus && !_this.editor.inputManager.focused;
+        noFocus = _this.needFocus && !_this.editor.editable.inputManager.focused;
         if (btn.hasClass('disabled') || noFocus) {
           return false;
         }
@@ -101,7 +101,7 @@ define([
       return function() {
         var editorActive;
         editorActive = _this.editor.body.is(':visible') && _this.editor.body.is('[contenteditable]');
-        if (!(editorActive && !_this.editor.clipboard.pasting)) {
+        if (!(editorActive && !_this.editor.editable.clipboard.pasting)) {
           return;
         }
         _this.setActive(false);
@@ -109,7 +109,7 @@ define([
       };
     })(this));
     if (this.shortcut != null) {
-      this.editor.hotkeys.add(this.shortcut, (function(_this) {
+      this.editor.editable.hotkeys.add(this.shortcut, (function(_this) {
         return function(e) {
           _this.el.mousedown();
           return false;
@@ -120,13 +120,13 @@ define([
     for (k = 0, len = ref.length; k < len; k++) {
       tag = ref[k];
       tag = langx.trim(tag);
-      if (tag && langx.inArray(tag, this.editor.formatter._allowedTags) < 0) {
-        this.editor.formatter._allowedTags.push(tag);
+      if (tag && langx.inArray(tag, this.editor.editable.formatter._allowedTags) < 0) {
+        this.editor.editable.formatter._allowedTags.push(tag);
       }
     }
     return this.editor.on('selectionchanged', (function(_this) {
       return function(e) {
-        if (_this.editor.inputManager.focused) {
+        if (_this.editor.editable.inputManager.focused) {
           return _this._status();
         }
       };
@@ -204,8 +204,8 @@ define([
 
   Button.prototype._disableStatus = function() {
     var disabled, endNodes, startNodes;
-    startNodes = this.editor.selection.startNodes();
-    endNodes = this.editor.selection.endNodes();
+    startNodes = this.editor.editable.selection.startNodes();
+    endNodes = this.editor.editable.selection.endNodes();
     disabled = startNodes.filter(this.disableTag).length > 0 || endNodes.filter(this.disableTag).length > 0;
     this.setDisabled(disabled);
     if (this.disabled) {
@@ -216,8 +216,8 @@ define([
 
   Button.prototype._activeStatus = function() {
     var active, endNode, endNodes, startNode, startNodes;
-    startNodes = this.editor.selection.startNodes();
-    endNodes = this.editor.selection.endNodes();
+    startNodes = this.editor.editable.selection.startNodes();
+    endNodes = this.editor.editable.selection.endNodes();
     startNode = startNodes.filter(this.htmlTag);
     endNode = endNodes.filter(this.htmlTag);
     active = startNode.length > 0 && endNode.length > 0 && startNode.is(endNode);

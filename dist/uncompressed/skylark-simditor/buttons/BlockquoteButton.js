@@ -20,11 +20,11 @@ define([
 
   BlockquoteButton.prototype.command = function() {
     var $rootNodes, clearCache, nodeCache;
-    $rootNodes = this.editor.selection.rootNodes();
+    $rootNodes = this.editor.editable.selection.rootNodes();
     $rootNodes = $rootNodes.filter(function(i, node) {
       return !$(node).parent().is('blockquote');
     });
-    this.editor.selection.save();
+    this.editor.editable.selection.save();
     nodeCache = [];
     clearCache = (function(_this) {
       return function() {
@@ -44,7 +44,7 @@ define([
         if ($node.is(_this.htmlTag)) {
           clearCache();
           return $node.children().unwrap();
-        } else if ($node.is(_this.disableTag) || _this.editor.util.isDecoratedNode($node)) {
+        } else if ($node.is(_this.disableTag) || _this.editor.editable.util.isDecoratedNode($node)) {
           return clearCache();
         } else {
           return nodeCache.push(node);
@@ -52,7 +52,7 @@ define([
       };
     })(this));
     clearCache();
-    this.editor.selection.restore();
+    this.editor.editable.selection.restore();
     return this.editor.trigger('valuechanged');
   };
 

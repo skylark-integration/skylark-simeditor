@@ -20,7 +20,7 @@ define([
     BoldButton.prototype.shortcut = 'cmd+b';
 
     BoldButton.prototype._init = function() {
-      if (this.editor.util.os.mac) {
+      if (this.editor.editable.util.os.mac) {
         this.title = this.title + ' ( Cmd + b )';
       } else {
         this.title = this.title + ' ( Ctrl + b )';
@@ -38,7 +38,7 @@ define([
 
     BoldButton.prototype.command = function() {
       document.execCommand('bold');
-      if (!this.editor.util.support.oninput) {
+      if (!this.editor.editable.util.support.oninput) {
         this.editor.trigger('valuechanged');
       }
       return $(document).trigger('selectionchange');

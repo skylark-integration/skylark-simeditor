@@ -49,17 +49,17 @@ define([
         if (!hex) {
           return;
         }
-        range = _this.editor.selection.range();
+        range = _this.editor.editable.selection.range();
         if (!$link.hasClass('font-color-default') && range.collapsed) {
           textNode = document.createTextNode(_this._t('coloredText'));
           range.insertNode(textNode);
           range.selectNodeContents(textNode);
         }
-        _this.editor.selection.range(range);
+        _this.editor.editable.selection.range(range);
         document.execCommand('styleWithCSS', false, true);
         document.execCommand('foreColor', false, hex);
         document.execCommand('styleWithCSS', false, false);
-        if (!_this.editor.util.support.oninput) {
+        if (!_this.editor.editable.util.support.oninput) {
           return _this.editor.trigger('valuechanged');
         }
       };

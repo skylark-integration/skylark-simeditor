@@ -19,7 +19,7 @@ define([
     UnorderListButton.prototype.shortcut = 'cmd+.';
 
     UnorderListButton.prototype._init = function() {
-      if (this.editor.util.os.mac) {
+      if (this.editor.editable.util.os.mac) {
         this.title = this.title + ' ( Cmd + . )';
       } else {
         this.title = this.title + ' ( Ctrl + . )';

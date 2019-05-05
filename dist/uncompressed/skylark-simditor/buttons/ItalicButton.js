@@ -22,7 +22,7 @@ define([
   ItalicButton.prototype.shortcut = 'cmd+i';
 
   ItalicButton.prototype._init = function() {
-    if (this.editor.util.os.mac) {
+    if (this.editor.editable.util.os.mac) {
       this.title = this.title + " ( Cmd + i )";
     } else {
       this.title = this.title + " ( Ctrl + i )";
@@ -40,7 +40,7 @@ define([
 
   ItalicButton.prototype.command = function() {
     document.execCommand('italic');
-    if (!this.editor.util.support.oninput) {
+    if (!this.editor.editable.util.support.oninput) {
       this.editor.trigger('valuechanged');
     }
     return $(document).trigger('selectionchange');

@@ -23,12 +23,12 @@ define([
 
   TableButton.prototype._init = function() {
     Button.prototype._init.call(this);
-    langx.merge(this.editor.formatter._allowedTags, ['thead', 'th', 'tbody', 'tr', 'td', 'colgroup', 'col']);
-    langx.extend(this.editor.formatter._allowedAttributes, {
+    langx.merge(this.editor.editable.formatter._allowedTags, ['thead', 'th', 'tbody', 'tr', 'td', 'colgroup', 'col']);
+    langx.extend(this.editor.editable.formatter._allowedAttributes, {
       td: ['rowspan', 'colspan'],
       col: ['width']
     });
-    langx.extend(this.editor.formatter._allowedStyles, {
+    langx.extend(this.editor.editable.formatter._allowedStyles, {
       td: ['text-align'],
       th: ['text-align']
     });
@@ -52,13 +52,13 @@ define([
       return function(e) {
         var $container, range;
         _this.editor.body.find('.simditor-table td, .simditor-table th').removeClass('active');
-        range = _this.editor.selection.range();
+        range = _this.editor.editable.selection.range();
         if (!range) {
           return;
         }
-        $container = _this.editor.selection.containerNode();
+        $container = _this.editor.editable.selection.containerNode();
         if (range.collapsed && $container.is('.simditor-table')) {
-          _this.editor.selection.setRangeAtEndOf($container);
+          _this.editor.editable.selection.setRangeAtEndOf($container);
         }
         return $container.closest('td, th', _this.editor.body).addClass('active');
       };
@@ -68,25 +68,25 @@ define([
         return _this.editor.body.find('.simditor-table td, .simditor-table th').removeClass('active');
       };
     })(this));
-    this.editor.keystroke.add('up', 'td', (function(_this) {
+    this.editor.editable.keystroke.add('up', 'td', (function(_this) {
       return function(e, $node) {
         _this._tdNav($node, 'up');
         return true;
       };
     })(this));
-    this.editor.keystroke.add('up', 'th', (function(_this) {
+    this.editor.editable.keystroke.add('up', 'th', (function(_this) {
       return function(e, $node) {
         _this._tdNav($node, 'up');
         return true;
       };
     })(this));
-    this.editor.keystroke.add('down', 'td', (function(_this) {
+    this.editor.editable.keystroke.add('down', 'td', (function(_this) {
       return function(e, $node) {
         _this._tdNav($node, 'down');
         return true;
       };
     })(this));
-    return this.editor.keystroke.add('down', 'th', (function(_this) {
+    return this.editor.editable.keystroke.add('down', 'th', (function(_this) {
       return function(e, $node) {
         _this._tdNav($node, 'down');
         return true;
@@ -107,7 +107,7 @@ define([
       return true;
     }
     index = $tr.find('td, th').index($td);
-    return this.editor.selection.setRangeAtEndOf($anotherTr.find('td, th').eq(index));
+    return this.editor.editable.selection.setRangeAtEndOf($anotherTr.find('td, th').eq(index));
   };
 
   TableButton.prototype._initResize = function() {
@@ -122,25 +122,25 @@ define([
   };
 
   TableButton.prototype._initShortcuts = function() {
-    this.editor.hotkeys.add('ctrl+alt+up', (function(_this) {
+    this.editor.editable.hotkeys.add('ctrl+alt+up', (function(_this) {
       return function(e) {
         _this.editMenu.find('.menu-item[data-param=insertRowAbove]').click();
         return false;
       };
     })(this));
-    this.editor.hotkeys.add('ctrl+alt+down', (function(_this) {
+    this.editor.editable.hotkeys.add('ctrl+alt+down', (function(_this) {
       return function(e) {
         _this.editMenu.find('.menu-item[data-param=insertRowBelow]').click();
         return false;
       };
     })(this));
-    this.editor.hotkeys.add('ctrl+alt+left', (function(_this) {
+    this.editor.editable.hotkeys.add('ctrl+alt+left', (function(_this) {
       return function(e) {
         _this.editMenu.find('.menu-item[data-param=insertColLeft]').click();
         return false;
       };
     })(this));
-    return this.editor.hotkeys.add('ctrl+alt+right', (function(_this) {
+    return this.editor.editable.hotkeys.add('ctrl+alt+right', (function(_this) {
       return function(e) {
         _this.editMenu.find('.menu-item[data-param=insertColRight]').click();
         return false;
@@ -175,7 +175,7 @@ define([
       return function(e) {
         var $closestBlock, $td, $tr, colNum, rowNum;
         _this.wrapper.removeClass('menu-on');
-        if (!_this.editor.inputManager.focused) {
+        if (!_this.editor.editable.inputManager.focused) {
           return;
         }
         $td = $(e.currentTarget);
@@ -186,14 +186,14 @@ define([
           rowNum += 1;
         }
         $table = _this.createTable(rowNum, colNum, true);
-        $closestBlock = _this.editor.selection.blockNodes().last();
-        if (_this.editor.util.isEmptyNode($closestBlock)) {
+        $closestBlock = _this.editor.editable.selection.blockNodes().last();
+        if (_this.editor.editable.util.isEmptyNode($closestBlock)) {
           $closestBlock.replaceWith($table);
         } else {
           $closestBlock.after($table);
         }
         _this.decorate($table);
-        _this.editor.selection.setRangeAtStartOf($table.find('th:first'));
+        _this.editor.editable.selection.setRangeAtStartOf($table.find('th:first'));
         _this.editor.trigger('valuechanged');
         return false;
       };
@@ -218,7 +218,7 @@ define([
 
 
   TableButton.prototype.createTable = function(row, col, phBr) {
-    return $(tables.createTable(row,col,phBr ? this.editor.util.phBr : null));
+    return $(tables.createTable(row,col,phBr ? this.editor.editable.util.phBr : null));
   };
 
   TableButton.prototype.refreshTableWidth = function($table) {
@@ -242,7 +242,7 @@ define([
 
     tables.deleteRow($td[0],function(newTr,index){
       if (newTr) {
-        ret = self.editor.selection.setRangeAtEndOf($(newTr).find('td, th').eq(index));
+        ret = self.editor.editable.selection.setRangeAtEndOf($(newTr).find('td, th').eq(index));
       }
     })
 
@@ -253,8 +253,8 @@ define([
     var self = this,
         ret; 
 
-    tables.insertRow($td[0],direction,self.editor.util.phBr,function(newTr,index){
-      ret =  self.editor.selection.setRangeAtStartOf($(newTr).find('td, th').eq(index));
+    tables.insertRow($td[0],direction,self.editor.editable.util.phBr,function(newTr,index){
+      ret =  self.editor.editable.selection.setRangeAtStartOf($(newTr).find('td, th').eq(index));
     })
 
     return ret;
@@ -267,7 +267,7 @@ define([
 
     tables.deleteCol($td[0],function(newTd){
       if (newTd) {
-        ret = self.editor.selection.setRangeAtEndOf($(newTd));
+        ret = self.editor.editable.selection.setRangeAtEndOf($(newTd));
       }
     })
 
@@ -278,8 +278,8 @@ define([
     var self = this,
         ret; 
 
-    tables.insertCol($td[0],direction,self.editor.util.phBr,function(newTd){
-      ret = self.editor.selection.setRangeAtStartOf($(newTd));
+    tables.insertCol($td[0],direction,self.editor.editable.util.phBr,function(newTd){
+      ret = self.editor.editable.selection.setRangeAtStartOf($(newTd));
     })
 
     return ret;
@@ -289,14 +289,14 @@ define([
     var self = this;
     tables.deleteTable($td[0],function($block){
       if ($block.length > 0) {
-        return self.editor.selection.setRangeAtStartOf($block);
+        return self.editor.editable.selection.setRangeAtStartOf($block);
       }
     });
   };
 
   TableButton.prototype.command = function(param) {
     var $td;
-    $td = this.editor.selection.containerNode().closest('td, th');
+    $td = this.editor.editable.selection.containerNode().closest('td, th');
     if (!($td.length > 0)) {
       return;
     }

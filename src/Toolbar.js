@@ -37,9 +37,9 @@ define([
           return function() {
             _this.wrapper.css('position', 'static');
             _this.wrapper.width('auto');
-            _this.editor.util.reflow(_this.wrapper);
+            _this.editor.editable.util.reflow(_this.wrapper);
             _this.wrapper.width(_this.wrapper.outerWidth());
-            _this.wrapper.css('left', _this.editor.util.os.mobile ? _this.wrapper.position().left : _this.wrapper.offset().left);
+            _this.wrapper.css('left', _this.editor.editable.util.os.mobile ? _this.wrapper.position().left : _this.wrapper.offset().left);
             _this.wrapper.css('position', '');
             toolbarHeight = _this.wrapper.outerHeight();
             _this.editor.placeholderEl.css('top', toolbarHeight);
@@ -61,13 +61,13 @@ define([
             scrollTop = $(document).scrollTop() + _this.opts.toolbarFloatOffset;
             if (scrollTop <= topEdge || scrollTop >= bottomEdge) {
               _this.editor.wrapper.removeClass('toolbar-floating').css('padding-top', '');
-              if (_this.editor.util.os.mobile) {
+              if (_this.editor.editable.util.os.mobile) {
                 return _this.wrapper.css('top', _this.opts.toolbarFloatOffset);
               }
             } else {
               floatInitialized || (floatInitialized = initToolbarFloat());
               _this.editor.wrapper.addClass('toolbar-floating').css('padding-top', toolbarHeight);
-              if (_this.editor.util.os.mobile) {
+              if (_this.editor.editable.util.os.mobile) {
                 return _this.wrapper.css('top', scrollTop - topEdge + _this.opts.toolbarFloatOffset);
               }
             }

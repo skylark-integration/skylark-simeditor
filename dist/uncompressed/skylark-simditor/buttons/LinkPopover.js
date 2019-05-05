@@ -22,7 +22,7 @@ define([
           return;
         }
         _this.target.text(_this.textEl.val());
-        return _this.editor.inputManager.throttledValueChanged();
+        return _this.editor.editable.inputManager.throttledValueChanged();
       };
     })(this));
     this.urlEl.on('keyup', (function(_this) {
@@ -36,7 +36,7 @@ define([
           val = 'http://' + val;
         }
         _this.target.attr('href', val);
-        return _this.editor.inputManager.throttledValueChanged();
+        return _this.editor.editable.inputManager.throttledValueChanged();
       };
     })(this));
     $([this.urlEl[0], this.textEl[0]]).on('keydown', (function(_this) {
@@ -45,9 +45,9 @@ define([
         if (e.which === 13 || e.which === 27 || (!e.shiftKey && e.which === 9 && $(e.target).hasClass('link-url'))) {
           e.preventDefault();
           range = document.createRange();
-          _this.editor.selection.setRangeAfter(_this.target, range);
+          _this.editor.editable.selection.setRangeAfter(_this.target, range);
           _this.hide();
-          return _this.editor.inputManager.throttledValueChanged();
+          return _this.editor.editable.inputManager.throttledValueChanged();
         }
       };
     })(this));
@@ -58,14 +58,14 @@ define([
         _this.target.replaceWith(txtNode);
         _this.hide();
         range = document.createRange();
-        _this.editor.selection.setRangeAfter(txtNode, range);
-        return _this.editor.inputManager.throttledValueChanged();
+        _this.editor.editable.selection.setRangeAfter(txtNode, range);
+        return _this.editor.editable.inputManager.throttledValueChanged();
       };
     })(this));
     return this.selectTarget.on('change', (function(_this) {
       return function(e) {
         _this.target.attr('target', _this.selectTarget.val());
-        return _this.editor.inputManager.throttledValueChanged();
+        return _this.editor.editable.inputManager.throttledValueChanged();
       };
     })(this));
   };

@@ -58,7 +58,7 @@ define([
   };
 
   AlignmentButton.prototype._status = function() {
-    this.nodes = this.editor.selection.nodes().filter(this.htmlTag);
+    this.nodes = this.editor.editable.selection.nodes().filter(this.htmlTag);
     if (this.nodes.length < 1) {
       this.setDisabled(true);
       return this.setActive(false);
@@ -76,7 +76,7 @@ define([
       'text-align': align === 'left' ? '' : align
     });
     this.editor.trigger('valuechanged');
-    return this.editor.inputManager.throttledSelectionChanged();
+    return this.editor.editable.inputManager.throttledSelectionChanged();
   };
 
   Simditor.Toolbar.addButton(AlignmentButton);

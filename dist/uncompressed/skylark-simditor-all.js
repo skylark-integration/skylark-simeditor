@@ -93,24 +93,14 @@ define([], function () {
     define([
         'skylark-langx/langx',
         'skylark-utils-dom/query',
-        'skylark-ui-contents/hotkeys',
-        'skylark-ui-contents/Util',
-        'skylark-ui-contents/InputManager',
-        'skylark-ui-contents/Selection',
-        'skylark-ui-contents/UndoManager',
-        'skylark-ui-contents/Keystroke',
-        'skylark-ui-contents/Formatter',
-        'skylark-ui-contents/Indentation',
-        'skylark-ui-contents/Clipboard',
+        'skylark-ui-contents/editable',
         './Toolbar',
         './uploader',
         './i18n'
-    ], function (langx, $, hotkeys, Util, InputManager, Selection, UndoManager, Keystroke, Formatter, Indentation, Clipboard, Toolbar, uploader, i18n) {
+    ], function (langx, $, editable, Toolbar, uploader, i18n) {
         var Simditor = langx.Evented.inherit({
             init: function (opts) {
                 this.opts = langx.extend({}, this.opts, opts);
-                var pluginOpts = { classPrefix: 'simditor-' };
-                this.util = new Util(this, pluginOpts);
                 var e, editor, uploadOpts;
                 this.textarea = $(this.opts.textarea);
                 this.opts.placeholder = this.opts.placeholder || this.textarea.attr('placeholder');
@@ -124,30 +114,25 @@ define([], function () {
                 }
                 this.id = ++Simditor.count;
                 this._render();
-                if (hotkeys) {
-                    this.hotkeys = hotkeys({ el: this.body });
-                } else {
-                    throw new Error('simditor: simple-hotkeys is required.');
-                    return;
-                }
+                var self = this;
+                this.editable = editable(this.el, {
+                    classPrefix: 'simditor-',
+                    textarea: this.textarea,
+                    body: this.body
+                });
+                this.editable.on('all', function (e, data) {
+                    return self.trigger(e.type, data);
+                });
                 if (this.opts.upload && uploader) {
                     uploadOpts = typeof this.opts.upload === 'object' ? this.opts.upload : {};
                     this.uploader = uploader(uploadOpts);
                 }
-                this.inputManager = new InputManager(this, pluginOpts);
-                this.selection = new Selection(this, pluginOpts);
-                this.undoManager = new UndoManager(this, pluginOpts);
-                this.keystroke = new Keystroke(this, pluginOpts);
-                this.formatter = new Formatter(this, pluginOpts);
                 this.toolbar = new Toolbar(this, {
                     toolbar: this.opts.toolbar,
                     toolbarFloat: this.opts.toolbarFloat,
                     toolbarHidden: this.opts.toolbarHidden,
                     toolbarFloatOffset: this.opts.toolbarFloatOffset
                 });
-                this.indentation = new Indentation(this, pluginOpts);
-                this.clipboard = new Clipboard(this, pluginOpts);
-                var self = this;
                 if (this.opts.placeholder) {
                     this.on('valuechanged', function () {
                         return self._placeholder();
@@ -156,15 +141,6 @@ define([], function () {
                 this.setValue(this.textarea.val().trim() || '');
                 if (this.textarea.attr('autofocus')) {
                     return self.focus();
-                }
-                if (this.util.browser.mozilla) {
-                    this.util.reflow();
-                    try {
-                        document.execCommand('enableObjectResizing', false, false);
-                        return document.execCommand('enableInlineTableEditing', false, false);
-                    } catch (_error) {
-                        e = _error;
-                    }
                 }
             }
         });
@@ -197,14 +173,6 @@ define([], function () {
             this.wrapper.append(this.textarea);
             this.textarea.data('simditor', this).blur();
             this.body.attr('tabindex', this.textarea.attr('tabindex'));
-            if (this.util.os.mac) {
-                this.el.addClass('simditor-mac');
-            } else if (this.util.os.linux) {
-                this.el.addClass('simditor-linux');
-            }
-            if (this.util.os.mobile) {
-                this.el.addClass('simditor-mobile');
-            }
             if (this.opts.params) {
                 ref = this.opts.params;
                 results = [];
@@ -230,65 +198,17 @@ define([], function () {
         };
         Simditor.prototype.setValue = function (val) {
             this.hidePopover();
-            this.textarea.val(val);
-            this.body.get(0).innerHTML = val;
-            this.formatter.format();
-            this.formatter.decorate();
-            this.util.reflow(this.body);
-            this.inputManager.lastCaretPosition = null;
+            this.editable.setValue(val);
             return this.trigger('valuechanged');
         };
         Simditor.prototype.getValue = function () {
-            return this.sync();
-        };
-        Simditor.prototype.sync = function () {
-            var children, cloneBody, emptyP, firstP, lastP, val;
-            cloneBody = this.body.clone();
-            this.formatter.undecorate(cloneBody);
-            this.formatter.format(cloneBody);
-            this.formatter.autolink(cloneBody);
-            children = cloneBody.children();
-            lastP = children.last('p');
-            firstP = children.first('p');
-            while (lastP.is('p') && this.util.isEmptyNode(lastP)) {
-                emptyP = lastP;
-                lastP = lastP.prev('p');
-                emptyP.remove();
-            }
-            while (firstP.is('p') && this.util.isEmptyNode(firstP)) {
-                emptyP = firstP;
-                firstP = lastP.next('p');
-                emptyP.remove();
-            }
-            cloneBody.find('img.uploading').remove();
-            val = langx.trim(cloneBody.html());
-            this.textarea.val(val);
-            return val;
+            return this.editable.getValue();
         };
         Simditor.prototype.focus = function () {
-            var $blockEl, range;
-            if (!(this.body.is(':visible') && this.body.is('[contenteditable]'))) {
-                this.el.find('textarea:visible').focus();
-                return;
-            }
-            if (this.inputManager.lastCaretPosition) {
-                this.undoManager.caretPosition(this.inputManager.lastCaretPosition);
-                return this.inputManager.lastCaretPosition = null;
-            } else {
-                $blockEl = this.body.children().last();
-                if (!$blockEl.is('p')) {
-                    $blockEl = $('<p/>').append(this.util.phBr).appendTo(this.body);
-                }
-                range = document.createRange();
-                return this.selection.setRangeAtEndOf($blockEl, range);
-            }
+            return this.editable.focus();
         };
         Simditor.prototype.blur = function () {
-            if (this.body.is(':visible') && this.body.is('[contenteditable]')) {
-                return this.body.blur();
-            } else {
-                return this.body.find('textarea:visible').blur();
-            }
+            return this.editable.blur();
         };
         Simditor.prototype.hidePopover = function () {
             return this.el.find('.simditor-popover').each(function (i, popover) {
@@ -9860,7 +9780,7 @@ define('skylark-simditor/Button',[
       return function(e) {
         var exceed, noFocus, param;
         e.preventDefault();
-        noFocus = _this.needFocus && !_this.editor.inputManager.focused;
+        noFocus = _this.needFocus && !_this.editor.editable.inputManager.focused;
         if (_this.el.hasClass('disabled')) {
           return false;
         }
@@ -9892,7 +9812,7 @@ define('skylark-simditor/Button',[
         e.preventDefault();
         btn = $(e.currentTarget);
         _this.wrapper.removeClass('menu-on');
-        noFocus = _this.needFocus && !_this.editor.inputManager.focused;
+        noFocus = _this.needFocus && !_this.editor.editable.inputManager.focused;
         if (btn.hasClass('disabled') || noFocus) {
           return false;
         }
@@ -9909,7 +9829,7 @@ define('skylark-simditor/Button',[
       return function() {
         var editorActive;
         editorActive = _this.editor.body.is(':visible') && _this.editor.body.is('[contenteditable]');
-        if (!(editorActive && !_this.editor.clipboard.pasting)) {
+        if (!(editorActive && !_this.editor.editable.clipboard.pasting)) {
           return;
         }
         _this.setActive(false);
@@ -9917,7 +9837,7 @@ define('skylark-simditor/Button',[
       };
     })(this));
     if (this.shortcut != null) {
-      this.editor.hotkeys.add(this.shortcut, (function(_this) {
+      this.editor.editable.hotkeys.add(this.shortcut, (function(_this) {
         return function(e) {
           _this.el.mousedown();
           return false;
@@ -9928,13 +9848,13 @@ define('skylark-simditor/Button',[
     for (k = 0, len = ref.length; k < len; k++) {
       tag = ref[k];
       tag = langx.trim(tag);
-      if (tag && langx.inArray(tag, this.editor.formatter._allowedTags) < 0) {
-        this.editor.formatter._allowedTags.push(tag);
+      if (tag && langx.inArray(tag, this.editor.editable.formatter._allowedTags) < 0) {
+        this.editor.editable.formatter._allowedTags.push(tag);
       }
     }
     return this.editor.on('selectionchanged', (function(_this) {
       return function(e) {
-        if (_this.editor.inputManager.focused) {
+        if (_this.editor.editable.inputManager.focused) {
           return _this._status();
         }
       };
@@ -10012,8 +9932,8 @@ define('skylark-simditor/Button',[
 
   Button.prototype._disableStatus = function() {
     var disabled, endNodes, startNodes;
-    startNodes = this.editor.selection.startNodes();
-    endNodes = this.editor.selection.endNodes();
+    startNodes = this.editor.editable.selection.startNodes();
+    endNodes = this.editor.editable.selection.endNodes();
     disabled = startNodes.filter(this.disableTag).length > 0 || endNodes.filter(this.disableTag).length > 0;
     this.setDisabled(disabled);
     if (this.disabled) {
@@ -10024,8 +9944,8 @@ define('skylark-simditor/Button',[
 
   Button.prototype._activeStatus = function() {
     var active, endNode, endNodes, startNode, startNodes;
-    startNodes = this.editor.selection.startNodes();
-    endNodes = this.editor.selection.endNodes();
+    startNodes = this.editor.editable.selection.startNodes();
+    endNodes = this.editor.editable.selection.endNodes();
     startNode = startNodes.filter(this.htmlTag);
     endNode = endNodes.filter(this.htmlTag);
     active = startNode.length > 0 && endNode.length > 0 && startNode.is(endNode);
@@ -10142,7 +10062,7 @@ define('skylark-simditor/Popover',[
       if (!this._labelWidth) {
         this._initLabelWidth();
       }
-      this.editor.util.reflow();
+      this.editor.editable.util.reflow();
       this.refresh(position);
       return this.trigger('popovershow');
     }
@@ -10244,9 +10164,9 @@ define('skylark-simditor/Toolbar',[
           return function() {
             _this.wrapper.css('position', 'static');
             _this.wrapper.width('auto');
-            _this.editor.util.reflow(_this.wrapper);
+            _this.editor.editable.util.reflow(_this.wrapper);
             _this.wrapper.width(_this.wrapper.outerWidth());
-            _this.wrapper.css('left', _this.editor.util.os.mobile ? _this.wrapper.position().left : _this.wrapper.offset().left);
+            _this.wrapper.css('left', _this.editor.editable.util.os.mobile ? _this.wrapper.position().left : _this.wrapper.offset().left);
             _this.wrapper.css('position', '');
             toolbarHeight = _this.wrapper.outerHeight();
             _this.editor.placeholderEl.css('top', toolbarHeight);
@@ -10268,13 +10188,13 @@ define('skylark-simditor/Toolbar',[
             scrollTop = $(document).scrollTop() + _this.opts.toolbarFloatOffset;
             if (scrollTop <= topEdge || scrollTop >= bottomEdge) {
               _this.editor.wrapper.removeClass('toolbar-floating').css('padding-top', '');
-              if (_this.editor.util.os.mobile) {
+              if (_this.editor.editable.util.os.mobile) {
                 return _this.wrapper.css('top', _this.opts.toolbarFloatOffset);
               }
             } else {
               floatInitialized || (floatInitialized = initToolbarFloat());
               _this.editor.wrapper.addClass('toolbar-floating').css('padding-top', toolbarHeight);
-              if (_this.editor.util.os.mobile) {
+              if (_this.editor.editable.util.os.mobile) {
                 return _this.wrapper.css('top', scrollTop - topEdge + _this.opts.toolbarFloatOffset);
               }
             }
@@ -10411,7 +10331,7 @@ define('skylark-simditor/buttons/AlignmentButton',[
   };
 
   AlignmentButton.prototype._status = function() {
-    this.nodes = this.editor.selection.nodes().filter(this.htmlTag);
+    this.nodes = this.editor.editable.selection.nodes().filter(this.htmlTag);
     if (this.nodes.length < 1) {
       this.setDisabled(true);
       return this.setActive(false);
@@ -10429,7 +10349,7 @@ define('skylark-simditor/buttons/AlignmentButton',[
       'text-align': align === 'left' ? '' : align
     });
     this.editor.trigger('valuechanged');
-    return this.editor.inputManager.throttledSelectionChanged();
+    return this.editor.editable.inputManager.throttledSelectionChanged();
   };
 
   Simditor.Toolbar.addButton(AlignmentButton);
@@ -10459,11 +10379,11 @@ define('skylark-simditor/buttons/BlockquoteButton',[
 
   BlockquoteButton.prototype.command = function() {
     var $rootNodes, clearCache, nodeCache;
-    $rootNodes = this.editor.selection.rootNodes();
+    $rootNodes = this.editor.editable.selection.rootNodes();
     $rootNodes = $rootNodes.filter(function(i, node) {
       return !$(node).parent().is('blockquote');
     });
-    this.editor.selection.save();
+    this.editor.editable.selection.save();
     nodeCache = [];
     clearCache = (function(_this) {
       return function() {
@@ -10483,7 +10403,7 @@ define('skylark-simditor/buttons/BlockquoteButton',[
         if ($node.is(_this.htmlTag)) {
           clearCache();
           return $node.children().unwrap();
-        } else if ($node.is(_this.disableTag) || _this.editor.util.isDecoratedNode($node)) {
+        } else if ($node.is(_this.disableTag) || _this.editor.editable.util.isDecoratedNode($node)) {
           return clearCache();
         } else {
           return nodeCache.push(node);
@@ -10491,7 +10411,7 @@ define('skylark-simditor/buttons/BlockquoteButton',[
       };
     })(this));
     clearCache();
-    this.editor.selection.restore();
+    this.editor.editable.selection.restore();
     return this.editor.trigger('valuechanged');
   };
 
@@ -10522,7 +10442,7 @@ define('skylark-simditor/buttons/BoldButton',[
     BoldButton.prototype.shortcut = 'cmd+b';
 
     BoldButton.prototype._init = function() {
-      if (this.editor.util.os.mac) {
+      if (this.editor.editable.util.os.mac) {
         this.title = this.title + ' ( Cmd + b )';
       } else {
         this.title = this.title + ' ( Ctrl + b )';
@@ -10540,7 +10460,7 @@ define('skylark-simditor/buttons/BoldButton',[
 
     BoldButton.prototype.command = function() {
       document.execCommand('bold');
-      if (!this.editor.util.support.oninput) {
+      if (!this.editor.editable.util.support.oninput) {
         this.editor.trigger('valuechanged');
       }
       return $(document).trigger('selectionchange');
@@ -10730,8 +10650,8 @@ define('skylark-simditor/buttons/CodeButton',[
 
   CodeButton.prototype._checkMode = function() {
     var $blockNodes, range;
-    range = this.editor.selection.range();
-    if (($blockNodes = $(range.cloneContents()).find(this.editor.util.blockNodes.join(','))) > 0 || (range.collapsed && this.editor.selection.startNodes().filter('code').length === 0)) {
+    range = this.editor.editable.selection.range();
+    if (($blockNodes = $(range.cloneContents()).find(this.editor.editable.util.blockNodes.join(','))) > 0 || (range.collapsed && this.editor.editable.selection.startNodes().filter('code').length === 0)) {
       this.inlineMode = false;
       return this.htmlTag = 'pre';
     } else {
@@ -10785,7 +10705,7 @@ define('skylark-simditor/buttons/CodeButton',[
 
   CodeButton.prototype._blockCommand = function() {
     var $rootNodes, clearCache, nodeCache, resultNodes;
-    $rootNodes = this.editor.selection.rootNodes();
+    $rootNodes = this.editor.editable.selection.rootNodes();
     nodeCache = [];
     resultNodes = [];
     clearCache = (function(_this) {
@@ -10794,7 +10714,7 @@ define('skylark-simditor/buttons/CodeButton',[
         if (!(nodeCache.length > 0)) {
           return;
         }
-        $pre = $("<" + _this.htmlTag + "/>").insertBefore(nodeCache[0]).text(_this.editor.formatter.clearHtml(nodeCache));
+        $pre = $("<" + _this.htmlTag + "/>").insertBefore(nodeCache[0]).text(_this.editor.editable.formatter.clearHtml(nodeCache));
         resultNodes.push($pre[0]);
         return nodeCache.length = 0;
       };
@@ -10807,7 +10727,7 @@ define('skylark-simditor/buttons/CodeButton',[
           clearCache();
           $p = $('<p/>').append($node.html().replace('\n', '<br/>')).replaceAll($node);
           return resultNodes.push($p[0]);
-        } else if ($node.is(_this.disableTag) || _this.editor.util.isDecoratedNode($node) || $node.is('blockquote')) {
+        } else if ($node.is(_this.disableTag) || _this.editor.editable.util.isDecoratedNode($node) || $node.is('blockquote')) {
           return clearCache();
         } else {
           return nodeCache.push(node);
@@ -10815,24 +10735,24 @@ define('skylark-simditor/buttons/CodeButton',[
       };
     })(this));
     clearCache();
-    this.editor.selection.setRangeAtEndOf($(resultNodes).last());
+    this.editor.editable.selection.setRangeAtEndOf($(resultNodes).last());
     return this.editor.trigger('valuechanged');
   };
 
   CodeButton.prototype._inlineCommand = function() {
     var $code, $contents, range;
-    range = this.editor.selection.range();
+    range = this.editor.editable.selection.range();
     if (this.active) {
       range.selectNodeContents(this.node[0]);
-      this.editor.selection.save(range);
+      this.editor.editable.selection.save(range);
       this.node.contents().unwrap();
-      this.editor.selection.restore();
+      this.editor.editable.selection.restore();
     } else {
       $contents = $(range.extractContents());
       $code = $("<" + this.htmlTag + "/>").append($contents.contents());
       range.insertNode($code[0]);
       range.selectNodeContents($code[0]);
-      this.editor.selection.range(range);
+      this.editor.editable.selection.range(range);
     }
     return this.editor.trigger('valuechanged');
   };
@@ -10893,17 +10813,17 @@ define('skylark-simditor/buttons/ColorButton',[
         if (!hex) {
           return;
         }
-        range = _this.editor.selection.range();
+        range = _this.editor.editable.selection.range();
         if (!$link.hasClass('font-color-default') && range.collapsed) {
           textNode = document.createTextNode(_this._t('coloredText'));
           range.insertNode(textNode);
           range.selectNodeContents(textNode);
         }
-        _this.editor.selection.range(range);
+        _this.editor.editable.selection.range(range);
         document.execCommand('styleWithCSS', false, true);
         document.execCommand('foreColor', false, hex);
         document.execCommand('styleWithCSS', false, false);
-        if (!_this.editor.util.support.oninput) {
+        if (!_this.editor.editable.util.support.oninput) {
           return _this.editor.trigger('valuechanged');
         }
       };
@@ -10996,9 +10916,9 @@ define('skylark-simditor/buttons/FontScaleButton',[
 
   FontScaleButton.prototype._activeStatus = function() {
     var active, endNode, endNodes, range, startNode, startNodes;
-    range = this.editor.selection.range();
-    startNodes = this.editor.selection.startNodes();
-    endNodes = this.editor.selection.endNodes();
+    range = this.editor.editable.selection.range();
+    startNodes = this.editor.editable.selection.startNodes();
+    endNodes = this.editor.editable.selection.endNodes();
     startNode = startNodes.filter('span[style*="font-size"]');
     endNode = endNodes.filter('span[style*="font-size"]');
     active = startNodes.length > 0 && endNodes.length > 0 && startNode.is(endNode);
@@ -11008,17 +10928,17 @@ define('skylark-simditor/buttons/FontScaleButton',[
 
   FontScaleButton.prototype.command = function(param) {
     var $scales, containerNode, range;
-    range = this.editor.selection.range();
+    range = this.editor.editable.selection.range();
     if (range.collapsed) {
       return;
     }
-    this.editor.selection.range(range);
+    this.editor.editable.selection.range(range);
     document.execCommand('styleWithCSS', false, true);
     document.execCommand('fontSize', false, param);
     document.execCommand('styleWithCSS', false, false);
-    this.editor.selection.reset();
-    this.editor.selection.range();
-    containerNode = this.editor.selection.containerNode();
+    this.editor.editable.selection.reset();
+    this.editor.editable.selection.range();
+    containerNode = this.editor.editable.selection.containerNode();
     if (containerNode[0].nodeType === Node.TEXT_NODE) {
       $scales = containerNode.closest('span[style*="font-size"]');
     } else {
@@ -11071,19 +10991,19 @@ define('skylark-simditor/buttons/HrButton',[
 
   HrButton.prototype.command = function() {
     var $hr, $newBlock, $nextBlock, $rootBlock;
-    $rootBlock = this.editor.selection.rootNodes().first();
+    $rootBlock = this.editor.editable.selection.rootNodes().first();
     $nextBlock = $rootBlock.next();
     if ($nextBlock.length > 0) {
-      this.editor.selection.save();
+      this.editor.editable.selection.save();
     } else {
-      $newBlock = $('<p/>').append(this.editor.util.phBr);
+      $newBlock = $('<p/>').append(this.editor.editable.util.phBr);
     }
     $hr = $('<hr/>').insertAfter($rootBlock);
     if ($newBlock) {
       $newBlock.insertAfter($hr);
-      this.editor.selection.setRangeAtStartOf($newBlock);
+      this.editor.editable.selection.setRangeAtStartOf($newBlock);
     } else {
-      this.editor.selection.restore();
+      this.editor.editable.selection.restore();
     }
     return this.editor.trigger('valuechanged');
   };
@@ -11125,7 +11045,7 @@ define('skylark-simditor/buttons/ImagePopover',[
         }
         e.preventDefault();
         range = document.createRange();
-        _this.button.editor.selection.setRangeAfter(_this.target, range);
+        _this.button.editor.editable.selection.setRangeAfter(_this.target, range);
         return _this.hide();
       };
     })(this));
@@ -11163,7 +11083,7 @@ define('skylark-simditor/buttons/ImagePopover',[
           $img = _this.target;
           _this.hide();
           range = document.createRange();
-          return _this.button.editor.selection.setRangeAfter($img, range);
+          return _this.button.editor.editable.selection.setRangeAfter($img, range);
         } else if (e.which === 9) {
           return _this.el.data('popover').refresh();
         }
@@ -11175,7 +11095,7 @@ define('skylark-simditor/buttons/ImagePopover',[
         if (e.which === 13) {
           e.preventDefault();
           range = document.createRange();
-          _this.button.editor.selection.setRangeAfter(_this.target, range);
+          _this.button.editor.editable.selection.setRangeAfter(_this.target, range);
           return _this.hide();
         }
       };
@@ -11302,7 +11222,7 @@ define('skylark-simditor/buttons/ImagePopover',[
           _this.heightEl.val(_this.height);
         }
         if (/^data:image/.test(src)) {
-          blob = _this.editor.util.dataURLtoBlob(src);
+          blob = _this.editor.editable.util.dataURLtoBlob(src);
           blob.name = "Base64 Image.png";
           _this.editor.uploader.upload(blob, {
             inline: true,
@@ -11402,8 +11322,8 @@ define('skylark-simditor/buttons/ImageButton',[
         $img = $(e.currentTarget);
         range = document.createRange();
         range.selectNode($img[0]);
-        _this.editor.selection.range(range);
-        if (!_this.editor.util.support.onselectionchange) {
+        _this.editor.editable.selection.range(range);
+        if (!_this.editor.editable.util.support.onselectionchange) {
           _this.editor.trigger('selectionchanged');
         }
         return false;
@@ -11415,7 +11335,7 @@ define('skylark-simditor/buttons/ImageButton',[
     this.editor.on('selectionchanged.image', (function(_this) {
       return function() {
         var $contents, $img, range;
-        range = _this.editor.selection.range();
+        range = _this.editor.editable.selection.range();
         if (range == null) {
           return;
         }
@@ -11503,7 +11423,7 @@ define('skylark-simditor/buttons/ImageButton',[
     });
     $uploadItem.on('change', 'input[type=file]', (function(_this) {
       return function(e) {
-        if (_this.editor.inputManager.focused) {
+        if (_this.editor.editable.inputManager.focused) {
           _this.editor.uploader.upload($input, {
             inline: true
           });
@@ -11549,7 +11469,7 @@ define('skylark-simditor/buttons/ImageButton',[
         });
       };
     })(this));
-    uploadProgress = langx.proxy(this.editor.util.throttle(function(e, file, loaded, total) {
+    uploadProgress = langx.proxy(this.editor.editable.util.throttle(function(e, file, loaded, total) {
       var $img, $mask, percent;
       if (!file.inline) {
         return;
@@ -11705,7 +11625,7 @@ define('skylark-simditor/buttons/ImageButton',[
           'data-image-size': width + ',' + height
         }).removeClass('loading');
         if ($img.hasClass('uploading')) {
-          _this.editor.util.reflow(_this.editor.body);
+          _this.editor.editable.util.reflow(_this.editor.body);
           positionMask();
         } else {
           $mask.remove();
@@ -11731,15 +11651,15 @@ define('skylark-simditor/buttons/ImageButton',[
     if (name == null) {
       name = 'Image';
     }
-    if (!this.editor.inputManager.focused) {
+    if (!this.editor.editable.inputManager.focused) {
       this.editor.focus();
     }
-    range = this.editor.selection.range();
+    range = this.editor.editable.selection.range();
     range.deleteContents();
-    this.editor.selection.range(range);
+    this.editor.editable.selection.range(range);
     $img = $('<img/>').attr('alt', name);
     range.insertNode($img[0]);
-    this.editor.selection.setRangeAfter($img, range);
+    this.editor.editable.selection.setRangeAfter($img, range);
     this.editor.trigger('valuechanged');
     return $img;
   };
@@ -11750,7 +11670,7 @@ define('skylark-simditor/buttons/ImageButton',[
     return this.loadImage($img, src || this.defaultImage, (function(_this) {
       return function() {
         _this.editor.trigger('valuechanged');
-        _this.editor.util.reflow($img);
+        _this.editor.editable.util.reflow($img);
         $img.click();
         return _this.popover.one('popovershow', function() {
           _this.popover.srcEl.focus();
@@ -11791,7 +11711,7 @@ define('skylark-simditor/buttons/IndentButton',[
   IndentButton.prototype._status = function() {};
 
   IndentButton.prototype.command = function() {
-    return this.editor.indentation.indent();
+    return this.editor.editable.indentation.indent();
   };
 
   Simditor.Toolbar.addButton(IndentButton);	
@@ -11822,7 +11742,7 @@ define('skylark-simditor/buttons/ItalicButton',[
   ItalicButton.prototype.shortcut = 'cmd+i';
 
   ItalicButton.prototype._init = function() {
-    if (this.editor.util.os.mac) {
+    if (this.editor.editable.util.os.mac) {
       this.title = this.title + " ( Cmd + i )";
     } else {
       this.title = this.title + " ( Ctrl + i )";
@@ -11840,7 +11760,7 @@ define('skylark-simditor/buttons/ItalicButton',[
 
   ItalicButton.prototype.command = function() {
     document.execCommand('italic');
-    if (!this.editor.util.support.oninput) {
+    if (!this.editor.editable.util.support.oninput) {
       this.editor.trigger('valuechanged');
     }
     return $(document).trigger('selectionchange');
@@ -11875,7 +11795,7 @@ define('skylark-simditor/buttons/LinkPopover',[
           return;
         }
         _this.target.text(_this.textEl.val());
-        return _this.editor.inputManager.throttledValueChanged();
+        return _this.editor.editable.inputManager.throttledValueChanged();
       };
     })(this));
     this.urlEl.on('keyup', (function(_this) {
@@ -11889,7 +11809,7 @@ define('skylark-simditor/buttons/LinkPopover',[
           val = 'http://' + val;
         }
         _this.target.attr('href', val);
-        return _this.editor.inputManager.throttledValueChanged();
+        return _this.editor.editable.inputManager.throttledValueChanged();
       };
     })(this));
     $([this.urlEl[0], this.textEl[0]]).on('keydown', (function(_this) {
@@ -11898,9 +11818,9 @@ define('skylark-simditor/buttons/LinkPopover',[
         if (e.which === 13 || e.which === 27 || (!e.shiftKey && e.which === 9 && $(e.target).hasClass('link-url'))) {
           e.preventDefault();
           range = document.createRange();
-          _this.editor.selection.setRangeAfter(_this.target, range);
+          _this.editor.editable.selection.setRangeAfter(_this.target, range);
           _this.hide();
-          return _this.editor.inputManager.throttledValueChanged();
+          return _this.editor.editable.inputManager.throttledValueChanged();
         }
       };
     })(this));
@@ -11911,14 +11831,14 @@ define('skylark-simditor/buttons/LinkPopover',[
         _this.target.replaceWith(txtNode);
         _this.hide();
         range = document.createRange();
-        _this.editor.selection.setRangeAfter(txtNode, range);
-        return _this.editor.inputManager.throttledValueChanged();
+        _this.editor.editable.selection.setRangeAfter(txtNode, range);
+        return _this.editor.editable.inputManager.throttledValueChanged();
       };
     })(this));
     return this.selectTarget.on('change', (function(_this) {
       return function(e) {
         _this.target.attr('target', _this.selectTarget.val());
-        return _this.editor.inputManager.throttledValueChanged();
+        return _this.editor.editable.inputManager.throttledValueChanged();
       };
     })(this));
   };
@@ -11967,7 +11887,7 @@ define('skylark-simditor/buttons/LinkButton',[
 
   LinkButton.prototype._status = function() {
    Button.prototype._status.call(this);
-    if (this.active && !this.editor.selection.rangeAtEndOf(this.node)) {
+    if (this.active && !this.editor.editable.selection.rangeAtEndOf(this.node)) {
       return this.popover.show(this.node);
     } else {
       return this.popover.hide();
@@ -11976,20 +11896,20 @@ define('skylark-simditor/buttons/LinkButton',[
 
   LinkButton.prototype.command = function() {
     var $contents, $link, $newBlock, linkText, range, txtNode;
-    range = this.editor.selection.range();
+    range = this.editor.editable.selection.range();
     if (this.active) {
       txtNode = document.createTextNode(this.node.text());
       this.node.replaceWith(txtNode);
       range.selectNode(txtNode);
     } else {
       $contents = $(range.extractContents());
-      linkText = this.editor.formatter.clearHtml($contents.contents(), false);
+      linkText = this.editor.editable.formatter.clearHtml($contents.contents(), false);
       $link = $('<a/>', {
         href: '',
         target: '_blank',
         text: linkText || this._t('linkText')
       });
-      if (this.editor.selection.blockNodes().length > 0) {
+      if (this.editor.editable.selection.blockNodes().length > 0) {
         range.insertNode($link[0]);
       } else {
         $newBlock = $('<p/>').append($link);
@@ -12008,7 +11928,7 @@ define('skylark-simditor/buttons/LinkButton',[
         };
       })(this));
     }
-    this.editor.selection.range(range);
+    this.editor.editable.selection.range(range);
     return this.editor.trigger('valuechanged');
   };
 
@@ -12035,15 +11955,15 @@ define('skylark-simditor/buttons/ListButton',[
 
     ListButton.prototype.command = function(param) {
       var $list, $rootNodes, anotherType;
-      $rootNodes = this.editor.selection.blockNodes();
+      $rootNodes = this.editor.editable.selection.blockNodes();
       anotherType = this.type === 'ul' ? 'ol' : 'ul';
-      this.editor.selection.save();
+      this.editor.editable.selection.save();
       $list = null;
       $rootNodes.each((function(_this) {
         return function(i, node) {
           var $node;
           $node = $(node);
-          if ($node.is('blockquote, li') || $node.is(_this.disableTag) || _this.editor.util.isDecoratedNode($node) || !noder.contains(document, node)) {
+          if ($node.is('blockquote, li') || $node.is(_this.disableTag) || _this.editor.editable.util.isDecoratedNode($node) || !noder.contains(document, node)) {
             return;
           }
           if ($node.is(_this.type)) {
@@ -12051,22 +11971,22 @@ define('skylark-simditor/buttons/ListButton',[
               var $childList, $li;
               $li = $(li);
               $childList = $li.children('ul, ol').insertAfter($node);
-              return $('<p/>').append($(li).html() || _this.editor.util.phBr).insertBefore($node);
+              return $('<p/>').append($(li).html() || _this.editor.editable.util.phBr).insertBefore($node);
             });
             return $node.remove();
           } else if ($node.is(anotherType)) {
             return $('<' + _this.type + '/>').append($node.contents()).replaceAll($node);
           } else if ($list && $node.prev().is($list)) {
-            $('<li/>').append($node.html() || _this.editor.util.phBr).appendTo($list);
+            $('<li/>').append($node.html() || _this.editor.editable.util.phBr).appendTo($list);
             return $node.remove();
           } else {
             $list = $("<" + _this.type + "><li></li></" + _this.type + ">");
-            $list.find('li').append($node.html() || _this.editor.util.phBr);
+            $list.find('li').append($node.html() || _this.editor.editable.util.phBr);
             return $list.replaceAll($node);
           }
         };
       })(this));
-      this.editor.selection.restore();
+      this.editor.editable.selection.restore();
       return this.editor.trigger('valuechanged');
     };
 
@@ -12095,7 +12015,7 @@ define('skylark-simditor/buttons/OrderListButton',[
     OrderListButton.prototype.shortcut = 'cmd+/';
 
     OrderListButton.prototype._init = function() {
-      if (this.editor.util.os.mac) {
+      if (this.editor.editable.util.os.mac) {
         this.title = this.title + ' ( Cmd + / )';
       } else {
         this.title = this.title + ' ( ctrl + / )';
@@ -12134,7 +12054,7 @@ define('skylark-simditor/buttons/OutdentButton',[
   OutdentButton.prototype._status = function() {};
 
   OutdentButton.prototype.command = function() {
-    return this.editor.indentation.indent(true);
+    return this.editor.editable.indentation.indent(true);
   };
 
   Simditor.Toolbar.addButton(OutdentButton);	
@@ -12171,7 +12091,7 @@ define('skylark-simditor/buttons/StrikethroughButton',[
 
   StrikethroughButton.prototype.command = function() {
     document.execCommand('strikethrough');
-    if (!this.editor.util.support.oninput) {
+    if (!this.editor.editable.util.support.oninput) {
       this.editor.trigger('valuechanged');
     }
     return $(document).trigger('selectionchange');
@@ -12560,12 +12480,12 @@ define('skylark-simditor/buttons/TableButton',[
 
   TableButton.prototype._init = function() {
     Button.prototype._init.call(this);
-    langx.merge(this.editor.formatter._allowedTags, ['thead', 'th', 'tbody', 'tr', 'td', 'colgroup', 'col']);
-    langx.extend(this.editor.formatter._allowedAttributes, {
+    langx.merge(this.editor.editable.formatter._allowedTags, ['thead', 'th', 'tbody', 'tr', 'td', 'colgroup', 'col']);
+    langx.extend(this.editor.editable.formatter._allowedAttributes, {
       td: ['rowspan', 'colspan'],
       col: ['width']
     });
-    langx.extend(this.editor.formatter._allowedStyles, {
+    langx.extend(this.editor.editable.formatter._allowedStyles, {
       td: ['text-align'],
       th: ['text-align']
     });
@@ -12589,13 +12509,13 @@ define('skylark-simditor/buttons/TableButton',[
       return function(e) {
         var $container, range;
         _this.editor.body.find('.simditor-table td, .simditor-table th').removeClass('active');
-        range = _this.editor.selection.range();
+        range = _this.editor.editable.selection.range();
         if (!range) {
           return;
         }
-        $container = _this.editor.selection.containerNode();
+        $container = _this.editor.editable.selection.containerNode();
         if (range.collapsed && $container.is('.simditor-table')) {
-          _this.editor.selection.setRangeAtEndOf($container);
+          _this.editor.editable.selection.setRangeAtEndOf($container);
         }
         return $container.closest('td, th', _this.editor.body).addClass('active');
       };
@@ -12605,25 +12525,25 @@ define('skylark-simditor/buttons/TableButton',[
         return _this.editor.body.find('.simditor-table td, .simditor-table th').removeClass('active');
       };
     })(this));
-    this.editor.keystroke.add('up', 'td', (function(_this) {
+    this.editor.editable.keystroke.add('up', 'td', (function(_this) {
       return function(e, $node) {
         _this._tdNav($node, 'up');
         return true;
       };
     })(this));
-    this.editor.keystroke.add('up', 'th', (function(_this) {
+    this.editor.editable.keystroke.add('up', 'th', (function(_this) {
       return function(e, $node) {
         _this._tdNav($node, 'up');
         return true;
       };
     })(this));
-    this.editor.keystroke.add('down', 'td', (function(_this) {
+    this.editor.editable.keystroke.add('down', 'td', (function(_this) {
       return function(e, $node) {
         _this._tdNav($node, 'down');
         return true;
       };
     })(this));
-    return this.editor.keystroke.add('down', 'th', (function(_this) {
+    return this.editor.editable.keystroke.add('down', 'th', (function(_this) {
       return function(e, $node) {
         _this._tdNav($node, 'down');
         return true;
@@ -12644,7 +12564,7 @@ define('skylark-simditor/buttons/TableButton',[
       return true;
     }
     index = $tr.find('td, th').index($td);
-    return this.editor.selection.setRangeAtEndOf($anotherTr.find('td, th').eq(index));
+    return this.editor.editable.selection.setRangeAtEndOf($anotherTr.find('td, th').eq(index));
   };
 
   TableButton.prototype._initResize = function() {
@@ -12659,25 +12579,25 @@ define('skylark-simditor/buttons/TableButton',[
   };
 
   TableButton.prototype._initShortcuts = function() {
-    this.editor.hotkeys.add('ctrl+alt+up', (function(_this) {
+    this.editor.editable.hotkeys.add('ctrl+alt+up', (function(_this) {
       return function(e) {
         _this.editMenu.find('.menu-item[data-param=insertRowAbove]').click();
         return false;
       };
     })(this));
-    this.editor.hotkeys.add('ctrl+alt+down', (function(_this) {
+    this.editor.editable.hotkeys.add('ctrl+alt+down', (function(_this) {
       return function(e) {
         _this.editMenu.find('.menu-item[data-param=insertRowBelow]').click();
         return false;
       };
     })(this));
-    this.editor.hotkeys.add('ctrl+alt+left', (function(_this) {
+    this.editor.editable.hotkeys.add('ctrl+alt+left', (function(_this) {
       return function(e) {
         _this.editMenu.find('.menu-item[data-param=insertColLeft]').click();
         return false;
       };
     })(this));
-    return this.editor.hotkeys.add('ctrl+alt+right', (function(_this) {
+    return this.editor.editable.hotkeys.add('ctrl+alt+right', (function(_this) {
       return function(e) {
         _this.editMenu.find('.menu-item[data-param=insertColRight]').click();
         return false;
@@ -12712,7 +12632,7 @@ define('skylark-simditor/buttons/TableButton',[
       return function(e) {
         var $closestBlock, $td, $tr, colNum, rowNum;
         _this.wrapper.removeClass('menu-on');
-        if (!_this.editor.inputManager.focused) {
+        if (!_this.editor.editable.inputManager.focused) {
           return;
         }
         $td = $(e.currentTarget);
@@ -12723,14 +12643,14 @@ define('skylark-simditor/buttons/TableButton',[
           rowNum += 1;
         }
         $table = _this.createTable(rowNum, colNum, true);
-        $closestBlock = _this.editor.selection.blockNodes().last();
-        if (_this.editor.util.isEmptyNode($closestBlock)) {
+        $closestBlock = _this.editor.editable.selection.blockNodes().last();
+        if (_this.editor.editable.util.isEmptyNode($closestBlock)) {
           $closestBlock.replaceWith($table);
         } else {
           $closestBlock.after($table);
         }
         _this.decorate($table);
-        _this.editor.selection.setRangeAtStartOf($table.find('th:first'));
+        _this.editor.editable.selection.setRangeAtStartOf($table.find('th:first'));
         _this.editor.trigger('valuechanged');
         return false;
       };
@@ -12755,7 +12675,7 @@ define('skylark-simditor/buttons/TableButton',[
 
 
   TableButton.prototype.createTable = function(row, col, phBr) {
-    return $(tables.createTable(row,col,phBr ? this.editor.util.phBr : null));
+    return $(tables.createTable(row,col,phBr ? this.editor.editable.util.phBr : null));
   };
 
   TableButton.prototype.refreshTableWidth = function($table) {
@@ -12779,7 +12699,7 @@ define('skylark-simditor/buttons/TableButton',[
 
     tables.deleteRow($td[0],function(newTr,index){
       if (newTr) {
-        ret = self.editor.selection.setRangeAtEndOf($(newTr).find('td, th').eq(index));
+        ret = self.editor.editable.selection.setRangeAtEndOf($(newTr).find('td, th').eq(index));
       }
     })
 
@@ -12790,8 +12710,8 @@ define('skylark-simditor/buttons/TableButton',[
     var self = this,
         ret; 
 
-    tables.insertRow($td[0],direction,self.editor.util.phBr,function(newTr,index){
-      ret =  self.editor.selection.setRangeAtStartOf($(newTr).find('td, th').eq(index));
+    tables.insertRow($td[0],direction,self.editor.editable.util.phBr,function(newTr,index){
+      ret =  self.editor.editable.selection.setRangeAtStartOf($(newTr).find('td, th').eq(index));
     })
 
     return ret;
@@ -12804,7 +12724,7 @@ define('skylark-simditor/buttons/TableButton',[
 
     tables.deleteCol($td[0],function(newTd){
       if (newTd) {
-        ret = self.editor.selection.setRangeAtEndOf($(newTd));
+        ret = self.editor.editable.selection.setRangeAtEndOf($(newTd));
       }
     })
 
@@ -12815,8 +12735,8 @@ define('skylark-simditor/buttons/TableButton',[
     var self = this,
         ret; 
 
-    tables.insertCol($td[0],direction,self.editor.util.phBr,function(newTd){
-      ret = self.editor.selection.setRangeAtStartOf($(newTd));
+    tables.insertCol($td[0],direction,self.editor.editable.util.phBr,function(newTd){
+      ret = self.editor.editable.selection.setRangeAtStartOf($(newTd));
     })
 
     return ret;
@@ -12826,14 +12746,14 @@ define('skylark-simditor/buttons/TableButton',[
     var self = this;
     tables.deleteTable($td[0],function($block){
       if ($block.length > 0) {
-        return self.editor.selection.setRangeAtStartOf($block);
+        return self.editor.editable.selection.setRangeAtStartOf($block);
       }
     });
   };
 
   TableButton.prototype.command = function(param) {
     var $td;
-    $td = this.editor.selection.containerNode().closest('td, th');
+    $td = this.editor.editable.selection.containerNode().closest('td, th');
     if (!($td.length > 0)) {
       return;
     }
@@ -12924,19 +12844,19 @@ define('skylark-simditor/buttons/TitleButton',[
 
   TitleButton.prototype.command = function(param) {
     var $rootNodes;
-    $rootNodes = this.editor.selection.rootNodes();
-    this.editor.selection.save();
+    $rootNodes = this.editor.editable.selection.rootNodes();
+    this.editor.editable.selection.save();
     $rootNodes.each((function(_this) {
       return function(i, node) {
         var $node;
         $node = $(node);
-        if ($node.is('blockquote') || $node.is(param) || $node.is(_this.disableTag) || _this.editor.util.isDecoratedNode($node)) {
+        if ($node.is('blockquote') || $node.is(param) || $node.is(_this.disableTag) || _this.editor.editable.util.isDecoratedNode($node)) {
           return;
         }
         return $('<' + param + '/>').append($node.contents()).replaceAll($node);
       };
     })(this));
-    this.editor.selection.restore();
+    this.editor.editable.selection.restore();
     return this.editor.trigger('valuechanged');
   };
 
@@ -12967,7 +12887,7 @@ define('skylark-simditor/buttons/UnderlineButton',[
   UnderlineButton.prototype.shortcut = 'cmd+u';
 
   UnderlineButton.prototype.render = function() {
-    if (this.editor.util.os.mac) {
+    if (this.editor.editable.util.os.mac) {
       this.title = this.title + ' ( Cmd + u )';
     } else {
       this.title = this.title + ' ( Ctrl + u )';
@@ -12985,7 +12905,7 @@ define('skylark-simditor/buttons/UnderlineButton',[
 
   UnderlineButton.prototype.command = function() {
     document.execCommand('underline');
-    if (!this.editor.util.support.oninput) {
+    if (!this.editor.editable.util.support.oninput) {
       this.editor.trigger('valuechanged');
     }
     return $(document).trigger('selectionchange');
@@ -13018,7 +12938,7 @@ define('skylark-simditor/buttons/UnorderListButton',[
     UnorderListButton.prototype.shortcut = 'cmd+.';
 
     UnorderListButton.prototype._init = function() {
-      if (this.editor.util.os.mac) {
+      if (this.editor.editable.util.os.mac) {
         this.title = this.title + ' ( Cmd + . )';
       } else {
         this.title = this.title + ' ( Ctrl + . )';

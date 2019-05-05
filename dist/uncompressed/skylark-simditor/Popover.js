@@ -89,7 +89,7 @@ define([
       if (!this._labelWidth) {
         this._initLabelWidth();
       }
-      this.editor.util.reflow();
+      this.editor.editable.util.reflow();
       this.refresh(position);
       return this.trigger('popovershow');
     }

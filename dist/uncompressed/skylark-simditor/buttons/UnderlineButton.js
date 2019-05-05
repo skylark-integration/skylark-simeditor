@@ -20,7 +20,7 @@ define([
   UnderlineButton.prototype.shortcut = 'cmd+u';
 
   UnderlineButton.prototype.render = function() {
-    if (this.editor.util.os.mac) {
+    if (this.editor.editable.util.os.mac) {
       this.title = this.title + ' ( Cmd + u )';
     } else {
       this.title = this.title + ' ( Ctrl + u )';
@@ -38,7 +38,7 @@ define([
 
   UnderlineButton.prototype.command = function() {
     document.execCommand('underline');
-    if (!this.editor.util.support.oninput) {
+    if (!this.editor.editable.util.support.oninput) {
       this.editor.trigger('valuechanged');
     }
     return $(document).trigger('selectionchange');

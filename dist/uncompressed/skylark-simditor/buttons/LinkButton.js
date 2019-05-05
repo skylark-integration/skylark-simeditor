@@ -31,7 +31,7 @@ define([
 
   LinkButton.prototype._status = function() {
    Button.prototype._status.call(this);
-    if (this.active && !this.editor.selection.rangeAtEndOf(this.node)) {
+    if (this.active && !this.editor.editable.selection.rangeAtEndOf(this.node)) {
       return this.popover.show(this.node);
     } else {
       return this.popover.hide();
@@ -40,20 +40,20 @@ define([
 
   LinkButton.prototype.command = function() {
     var $contents, $link, $newBlock, linkText, range, txtNode;
-    range = this.editor.selection.range();
+    range = this.editor.editable.selection.range();
     if (this.active) {
       txtNode = document.createTextNode(this.node.text());
       this.node.replaceWith(txtNode);
       range.selectNode(txtNode);
     } else {
       $contents = $(range.extractContents());
-      linkText = this.editor.formatter.clearHtml($contents.contents(), false);
+      linkText = this.editor.editable.formatter.clearHtml($contents.contents(), false);
       $link = $('<a/>', {
         href: '',
         target: '_blank',
         text: linkText || this._t('linkText')
       });
-      if (this.editor.selection.blockNodes().length > 0) {
+      if (this.editor.editable.selection.blockNodes().length > 0) {
         range.insertNode($link[0]);
       } else {
         $newBlock = $('<p/>').append($link);
@@ -72,7 +72,7 @@ define([
         };
       })(this));
     }
-    this.editor.selection.range(range);
+    this.editor.editable.selection.range(range);
     return this.editor.trigger('valuechanged');
   };
 

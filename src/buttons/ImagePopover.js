@@ -30,7 +30,7 @@ define([
         }
         e.preventDefault();
         range = document.createRange();
-        _this.button.editor.selection.setRangeAfter(_this.target, range);
+        _this.button.editor.editable.selection.setRangeAfter(_this.target, range);
         return _this.hide();
       };
     })(this));
@@ -68,7 +68,7 @@ define([
           $img = _this.target;
           _this.hide();
           range = document.createRange();
-          return _this.button.editor.selection.setRangeAfter($img, range);
+          return _this.button.editor.editable.selection.setRangeAfter($img, range);
         } else if (e.which === 9) {
           return _this.el.data('popover').refresh();
         }
@@ -80,7 +80,7 @@ define([
         if (e.which === 13) {
           e.preventDefault();
           range = document.createRange();
-          _this.button.editor.selection.setRangeAfter(_this.target, range);
+          _this.button.editor.editable.selection.setRangeAfter(_this.target, range);
           return _this.hide();
         }
       };
@@ -207,7 +207,7 @@ define([
           _this.heightEl.val(_this.height);
         }
         if (/^data:image/.test(src)) {
-          blob = _this.editor.util.dataURLtoBlob(src);
+          blob = _this.editor.editable.util.dataURLtoBlob(src);
           blob.name = "Base64 Image.png";
           _this.editor.uploader.upload(blob, {
             inline: true,

@@ -50,8 +50,8 @@ define([
 
   CodeButton.prototype._checkMode = function() {
     var $blockNodes, range;
-    range = this.editor.selection.range();
-    if (($blockNodes = $(range.cloneContents()).find(this.editor.util.blockNodes.join(','))) > 0 || (range.collapsed && this.editor.selection.startNodes().filter('code').length === 0)) {
+    range = this.editor.editable.selection.range();
+    if (($blockNodes = $(range.cloneContents()).find(this.editor.editable.util.blockNodes.join(','))) > 0 || (range.collapsed && this.editor.editable.selection.startNodes().filter('code').length === 0)) {
       this.inlineMode = false;
       return this.htmlTag = 'pre';
     } else {
@@ -105,7 +105,7 @@ define([
 
   CodeButton.prototype._blockCommand = function() {
     var $rootNodes, clearCache, nodeCache, resultNodes;
-    $rootNodes = this.editor.selection.rootNodes();
+    $rootNodes = this.editor.editable.selection.rootNodes();
     nodeCache = [];
     resultNodes = [];
     clearCache = (function(_this) {
@@ -114,7 +114,7 @@ define([
         if (!(nodeCache.length > 0)) {
           return;
         }
-        $pre = $("<" + _this.htmlTag + "/>").insertBefore(nodeCache[0]).text(_this.editor.formatter.clearHtml(nodeCache));
+        $pre = $("<" + _this.htmlTag + "/>").insertBefore(nodeCache[0]).text(_this.editor.editable.formatter.clearHtml(nodeCache));
         resultNodes.push($pre[0]);
         return nodeCache.length = 0;
       };
@@ -127,7 +127,7 @@ define([
           clearCache();
           $p = $('<p/>').append($node.html().replace('\n', '<br/>')).replaceAll($node);
           return resultNodes.push($p[0]);
-        } else if ($node.is(_this.disableTag) || _this.editor.util.isDecoratedNode($node) || $node.is('blockquote')) {
+        } else if ($node.is(_this.disableTag) || _this.editor.editable.util.isDecoratedNode($node) || $node.is('blockquote')) {
           return clearCache();
         } else {
           return nodeCache.push(node);
@@ -135,24 +135,24 @@ define([
       };
     })(this));
     clearCache();
-    this.editor.selection.setRangeAtEndOf($(resultNodes).last());
+    this.editor.editable.selection.setRangeAtEndOf($(resultNodes).last());
     return this.editor.trigger('valuechanged');
   };
 
   CodeButton.prototype._inlineCommand = function() {
     var $code, $contents, range;
-    range = this.editor.selection.range();
+    range = this.editor.editable.selection.range();
     if (this.active) {
       range.selectNodeContents(this.node[0]);
-      this.editor.selection.save(range);
+      this.editor.editable.selection.save(range);
       this.node.contents().unwrap();
-      this.editor.selection.restore();
+      this.editor.editable.selection.restore();
     } else {
       $contents = $(range.extractContents());
       $code = $("<" + this.htmlTag + "/>").append($contents.contents());
       range.insertNode($code[0]);
       range.selectNodeContents($code[0]);
-      this.editor.selection.range(range);
+      this.editor.editable.selection.range(range);
     }
     return this.editor.trigger('valuechanged');
   };

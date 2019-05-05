@@ -56,9 +56,9 @@ define([
 
   FontScaleButton.prototype._activeStatus = function() {
     var active, endNode, endNodes, range, startNode, startNodes;
-    range = this.editor.selection.range();
-    startNodes = this.editor.selection.startNodes();
-    endNodes = this.editor.selection.endNodes();
+    range = this.editor.editable.selection.range();
+    startNodes = this.editor.editable.selection.startNodes();
+    endNodes = this.editor.editable.selection.endNodes();
     startNode = startNodes.filter('span[style*="font-size"]');
     endNode = endNodes.filter('span[style*="font-size"]');
     active = startNodes.length > 0 && endNodes.length > 0 && startNode.is(endNode);
@@ -68,17 +68,17 @@ define([
 
   FontScaleButton.prototype.command = function(param) {
     var $scales, containerNode, range;
-    range = this.editor.selection.range();
+    range = this.editor.editable.selection.range();
     if (range.collapsed) {
       return;
     }
-    this.editor.selection.range(range);
+    this.editor.editable.selection.range(range);
     document.execCommand('styleWithCSS', false, true);
     document.execCommand('fontSize', false, param);
     document.execCommand('styleWithCSS', false, false);
-    this.editor.selection.reset();
-    this.editor.selection.range();
-    containerNode = this.editor.selection.containerNode();
+    this.editor.editable.selection.reset();
+    this.editor.editable.selection.range();
+    containerNode = this.editor.editable.selection.containerNode();
     if (containerNode[0].nodeType === Node.TEXT_NODE) {
       $scales = containerNode.closest('span[style*="font-size"]');
     } else {

@@ -61,8 +61,8 @@ define([
         $img = $(e.currentTarget);
         range = document.createRange();
         range.selectNode($img[0]);
-        _this.editor.selection.range(range);
-        if (!_this.editor.util.support.onselectionchange) {
+        _this.editor.editable.selection.range(range);
+        if (!_this.editor.editable.util.support.onselectionchange) {
           _this.editor.trigger('selectionchanged');
         }
         return false;
@@ -74,7 +74,7 @@ define([
     this.editor.on('selectionchanged.image', (function(_this) {
       return function() {
         var $contents, $img, range;
-        range = _this.editor.selection.range();
+        range = _this.editor.editable.selection.range();
         if (range == null) {
           return;
         }
@@ -162,7 +162,7 @@ define([
     });
     $uploadItem.on('change', 'input[type=file]', (function(_this) {
       return function(e) {
-        if (_this.editor.inputManager.focused) {
+        if (_this.editor.editable.inputManager.focused) {
           _this.editor.uploader.upload($input, {
             inline: true
           });
@@ -208,7 +208,7 @@ define([
         });
       };
     })(this));
-    uploadProgress = langx.proxy(this.editor.util.throttle(function(e, file, loaded, total) {
+    uploadProgress = langx.proxy(this.editor.editable.util.throttle(function(e, file, loaded, total) {
       var $img, $mask, percent;
       if (!file.inline) {
         return;
@@ -364,7 +364,7 @@ define([
           'data-image-size': width + ',' + height
         }).removeClass('loading');
         if ($img.hasClass('uploading')) {
-          _this.editor.util.reflow(_this.editor.body);
+          _this.editor.editable.util.reflow(_this.editor.body);
           positionMask();
         } else {
           $mask.remove();
@@ -390,15 +390,15 @@ define([
     if (name == null) {
       name = 'Image';
     }
-    if (!this.editor.inputManager.focused) {
+    if (!this.editor.editable.inputManager.focused) {
       this.editor.focus();
     }
-    range = this.editor.selection.range();
+    range = this.editor.editable.selection.range();
     range.deleteContents();
-    this.editor.selection.range(range);
+    this.editor.editable.selection.range(range);
     $img = $('<img/>').attr('alt', name);
     range.insertNode($img[0]);
-    this.editor.selection.setRangeAfter($img, range);
+    this.editor.editable.selection.setRangeAfter($img, range);
     this.editor.trigger('valuechanged');
     return $img;
   };
@@ -409,7 +409,7 @@ define([
     return this.loadImage($img, src || this.defaultImage, (function(_this) {
       return function() {
         _this.editor.trigger('valuechanged');
-        _this.editor.util.reflow($img);
+        _this.editor.editable.util.reflow($img);
         $img.click();
         return _this.popover.one('popovershow', function() {
           _this.popover.srcEl.focus();

@@ -1,29 +1,16 @@
 define([
   "skylark-langx/langx",
   "skylark-utils-dom/query",
-  "skylark-ui-contents/hotkeys",
-  "skylark-ui-contents/Util",
-  "skylark-ui-contents/InputManager", 
-  "skylark-ui-contents/Selection", 
-  "skylark-ui-contents/UndoManager", 
-  "skylark-ui-contents/Keystroke",
-  "skylark-ui-contents/Formatter", 
-  "skylark-ui-contents/Indentation", 
-  "skylark-ui-contents/Clipboard",
+  "skylark-ui-contents/editable",
   "./Toolbar",
   "./uploader",
   "./i18n"
 
-],function(langx, $,hotkeys,Util,InputManager,Selection,UndoManager,Keystroke,Formatter,Indentation,Clipboard,Toolbar,uploader,i18n){ 
+],function(langx, $, editable,Toolbar,uploader,i18n){ 
 
   var Simditor = langx.Evented.inherit({
     init : function(opts) {
       this.opts = langx.extend({}, this.opts, opts);
-      var pluginOpts = {
-        classPrefix : "simditor-"
-      };
-
-      this.util = new Util(this,pluginOpts);
 
       var e, editor, uploadOpts;
       this.textarea = $(this.opts.textarea);
@@ -38,27 +25,25 @@ define([
       }
       this.id = ++Simditor.count;
       this._render();
-      if (hotkeys) {
-        this.hotkeys = hotkeys({
-          el: this.body
-        });
-      } else {
-        throw new Error('simditor: simple-hotkeys is required.');
-        return;
-      }
+
+
+      var self = this;
+      this.editable = editable(this.el,{
+        classPrefix : "simditor-",
+        textarea : this.textarea,
+        body : this.body
+      });
+
+      // TODO
+      this.editable.on("all",function(e,data){
+        return self.trigger(e.type,data);
+      });
 
       if (this.opts.upload && uploader) {
         uploadOpts = typeof this.opts.upload === 'object' ? this.opts.upload : {};
         this.uploader = uploader(uploadOpts);
       }
 
-
-
-      this.inputManager = new InputManager(this,pluginOpts);
-      this.selection = new Selection(this,pluginOpts);
-      this.undoManager = new UndoManager(this,pluginOpts);
-      this.keystroke = new Keystroke(this,pluginOpts);
-      this.formatter = new Formatter(this,pluginOpts);
       this.toolbar = new Toolbar(this,{
         toolbar: this.opts.toolbar,
         toolbarFloat:  this.opts.toolbarFloat,
@@ -66,10 +51,7 @@ define([
         toolbarFloatOffset:  this.opts.toolbarFloatOffset
 
       });
-      this.indentation = new Indentation(this,pluginOpts);
-      this.clipboard = new Clipboard(this,pluginOpts);
 
-      var self = this;
       if (this.opts.placeholder) {
         this.on('valuechanged', function() {
           return self._placeholder();
@@ -80,16 +62,6 @@ define([
         return self.focus();
       }
 
-
-      if (this.util.browser.mozilla) {
-        this.util.reflow();
-        try {
-          document.execCommand('enableObjectResizing', false, false);
-          return document.execCommand('enableInlineTableEditing', false, false);
-        } catch (_error) {
-          e = _error;
-        }
-      }
 
     }
   });
@@ -148,14 +120,7 @@ define([
     this.wrapper.append(this.textarea);
     this.textarea.data('simditor', this).blur();
     this.body.attr('tabindex', this.textarea.attr('tabindex'));
-    if (this.util.os.mac) {
-      this.el.addClass('simditor-mac');
-    } else if (this.util.os.linux) {
-      this.el.addClass('simditor-linux');
-    }
-    if (this.util.os.mobile) {
-      this.el.addClass('simditor-mobile');
-    }
+
     if (this.opts.params) {
       ref = this.opts.params;
       results = [];
@@ -183,69 +148,22 @@ define([
 
   Simditor.prototype.setValue = function(val) {
     this.hidePopover();
-    this.textarea.val(val);
-    this.body.get(0).innerHTML = val;
-    this.formatter.format();
-    this.formatter.decorate();
-    this.util.reflow(this.body);
-    this.inputManager.lastCaretPosition = null;
+
+    this.editable.setValue(val);
+
     return this.trigger('valuechanged');
   };
 
   Simditor.prototype.getValue = function() {
-    return this.sync();
-  };
-
-  Simditor.prototype.sync = function() {
-    var children, cloneBody, emptyP, firstP, lastP, val;
-    cloneBody = this.body.clone();
-    this.formatter.undecorate(cloneBody);
-    this.formatter.format(cloneBody);
-    this.formatter.autolink(cloneBody);
-    children = cloneBody.children();
-    lastP = children.last('p');
-    firstP = children.first('p');
-    while (lastP.is('p') && this.util.isEmptyNode(lastP)) {
-      emptyP = lastP;
-      lastP = lastP.prev('p');
-      emptyP.remove();
-    }
-    while (firstP.is('p') && this.util.isEmptyNode(firstP)) {
-      emptyP = firstP;
-      firstP = lastP.next('p');
-      emptyP.remove();
-    }
-    cloneBody.find('img.uploading').remove();
-    val = langx.trim(cloneBody.html());
-    this.textarea.val(val);
-    return val;
+    return this.editable.getValue();
   };
 
   Simditor.prototype.focus = function() {
-    var $blockEl, range;
-    if (!(this.body.is(':visible') && this.body.is('[contenteditable]'))) {
-      this.el.find('textarea:visible').focus();
-      return;
-    }
-    if (this.inputManager.lastCaretPosition) {
-      this.undoManager.caretPosition(this.inputManager.lastCaretPosition);
-      return this.inputManager.lastCaretPosition = null;
-    } else {
-      $blockEl = this.body.children().last();
-      if (!$blockEl.is('p')) {
-        $blockEl = $('<p/>').append(this.util.phBr).appendTo(this.body);
-      }
-      range = document.createRange();
-      return this.selection.setRangeAtEndOf($blockEl, range);
-    }
+    return this.editable.focus();
   };
 
   Simditor.prototype.blur = function() {
-    if (this.body.is(':visible') && this.body.is('[contenteditable]')) {
-      return this.body.blur();
-    } else {
-      return this.body.find('textarea:visible').blur();
-    }
+    return this.editable.blur();
   };
 
   Simditor.prototype.hidePopover = function() {

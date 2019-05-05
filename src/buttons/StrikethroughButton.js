@@ -27,7 +27,7 @@ define([
 
   StrikethroughButton.prototype.command = function() {
     document.execCommand('strikethrough');
-    if (!this.editor.util.support.oninput) {
+    if (!this.editor.editable.util.support.oninput) {
       this.editor.trigger('valuechanged');
     }
     return $(document).trigger('selectionchange');
