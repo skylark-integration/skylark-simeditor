@@ -31,17 +31,13 @@ define([
 
   UnderlineButton.prototype._activeStatus = function() {
     var active;
-    active = document.queryCommandState('underline') === true;
+    active = this.editor.editable.isActive('underline');
     this.setActive(active);
     return this.active;
   };
 
   UnderlineButton.prototype.command = function() {
-    document.execCommand('underline');
-    if (!this.editor.editable.util.support.oninput) {
-      this.editor.trigger('valuechanged');
-    }
-    return $(document).trigger('selectionchange');
+    return this.editor.editable.underline();
   };
 
 

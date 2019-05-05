@@ -2,8 +2,9 @@ define([
   "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
-  "../Button"
-],function($,Toolbar,Simditor,Button){ 
+  "../Button",
+  "../i18n"
+],function($,Toolbar,Simditor,Button,i18n){ 
   
 
    var ColorButton = Button.inherit({
@@ -49,19 +50,8 @@ define([
         if (!hex) {
           return;
         }
-        range = _this.editor.editable.selection.range();
-        if (!$link.hasClass('font-color-default') && range.collapsed) {
-          textNode = document.createTextNode(_this._t('coloredText'));
-          range.insertNode(textNode);
-          range.selectNodeContents(textNode);
-        }
-        _this.editor.editable.selection.range(range);
-        document.execCommand('styleWithCSS', false, true);
-        document.execCommand('foreColor', false, hex);
-        document.execCommand('styleWithCSS', false, false);
-        if (!_this.editor.editable.util.support.oninput) {
-          return _this.editor.trigger('valuechanged');
-        }
+
+        return _this.editor.editable.fontColor(hex,$link.hasClass('font-color-default'),i18n.translate('coloredText'));
       };
     })(this));
   };

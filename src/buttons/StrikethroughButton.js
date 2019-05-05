@@ -20,17 +20,13 @@ define([
 
   StrikethroughButton.prototype._activeStatus = function() {
     var active;
-    active = document.queryCommandState('strikethrough') === true;
+    active = this.editor.editable.isActive('strikethrough');
     this.setActive(active);
     return this.active;
   };
 
   StrikethroughButton.prototype.command = function() {
-    document.execCommand('strikethrough');
-    if (!this.editor.editable.util.support.oninput) {
-      this.editor.trigger('valuechanged');
-    }
-    return $(document).trigger('selectionchange');
+    return this.editor.editable.strikethrough();
   };
 
   Simditor.Toolbar.addButton(StrikethroughButton);	

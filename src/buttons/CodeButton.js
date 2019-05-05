@@ -104,57 +104,11 @@ define([
   };
 
   CodeButton.prototype._blockCommand = function() {
-    var $rootNodes, clearCache, nodeCache, resultNodes;
-    $rootNodes = this.editor.editable.selection.rootNodes();
-    nodeCache = [];
-    resultNodes = [];
-    clearCache = (function(_this) {
-      return function() {
-        var $pre;
-        if (!(nodeCache.length > 0)) {
-          return;
-        }
-        $pre = $("<" + _this.htmlTag + "/>").insertBefore(nodeCache[0]).text(_this.editor.editable.formatter.clearHtml(nodeCache));
-        resultNodes.push($pre[0]);
-        return nodeCache.length = 0;
-      };
-    })(this);
-    $rootNodes.each((function(_this) {
-      return function(i, node) {
-        var $node, $p;
-        $node = $(node);
-        if ($node.is(_this.htmlTag)) {
-          clearCache();
-          $p = $('<p/>').append($node.html().replace('\n', '<br/>')).replaceAll($node);
-          return resultNodes.push($p[0]);
-        } else if ($node.is(_this.disableTag) || _this.editor.editable.util.isDecoratedNode($node) || $node.is('blockquote')) {
-          return clearCache();
-        } else {
-          return nodeCache.push(node);
-        }
-      };
-    })(this));
-    clearCache();
-    this.editor.editable.selection.setRangeAtEndOf($(resultNodes).last());
-    return this.editor.trigger('valuechanged');
+    return this.editor.editable.blockCode(this.htmlTag,this.disableTag);
   };
 
   CodeButton.prototype._inlineCommand = function() {
-    var $code, $contents, range;
-    range = this.editor.editable.selection.range();
-    if (this.active) {
-      range.selectNodeContents(this.node[0]);
-      this.editor.editable.selection.save(range);
-      this.node.contents().unwrap();
-      this.editor.editable.selection.restore();
-    } else {
-      $contents = $(range.extractContents());
-      $code = $("<" + this.htmlTag + "/>").append($contents.contents());
-      range.insertNode($code[0]);
-      range.selectNodeContents($code[0]);
-      this.editor.editable.selection.range(range);
-    }
-    return this.editor.trigger('valuechanged');
+    return this.editor.editable.inlineCode(this.active);
   };
 
   Simditor.Toolbar.addButton(CodeButton);    

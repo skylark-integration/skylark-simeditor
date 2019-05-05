@@ -20,12 +20,6 @@ define([
 
   FontScaleButton.prototype.disableTag = 'pre, h1, h2, h3, h4, h5';
 
-  FontScaleButton.prototype.sizeMap = {
-    'x-large': '1.5em',
-    'large': '1.25em',
-    'small': '.75em',
-    'x-small': '.5em'
-  };
 
   FontScaleButton.prototype._init = function() {
     this.menu = [
@@ -67,40 +61,7 @@ define([
   };
 
   FontScaleButton.prototype.command = function(param) {
-    var $scales, containerNode, range;
-    range = this.editor.editable.selection.range();
-    if (range.collapsed) {
-      return;
-    }
-    this.editor.editable.selection.range(range);
-    document.execCommand('styleWithCSS', false, true);
-    document.execCommand('fontSize', false, param);
-    document.execCommand('styleWithCSS', false, false);
-    this.editor.editable.selection.reset();
-    this.editor.editable.selection.range();
-    containerNode = this.editor.editable.selection.containerNode();
-    if (containerNode[0].nodeType === Node.TEXT_NODE) {
-      $scales = containerNode.closest('span[style*="font-size"]');
-    } else {
-      $scales = containerNode.find('span[style*="font-size"]');
-    }
-    $scales.each((function(_this) {
-      return function(i, n) {
-        var $span, size;
-        $span = $(n);
-        size = n.style.fontSize;
-        if (/large|x-large|small|x-small/.test(size)) {
-          return $span.css('fontSize', _this.sizeMap[size]);
-        } else if (size === 'medium') {
-          if ($span[0].style.length > 1) {
-            return $span.css('fontSize', '');
-          } else {
-            return $span.replaceWith($span.contents());
-          }
-        }
-      };
-    })(this));
-    return this.editor.trigger('valuechanged');
+    return this.editor.editable.fontScale(param);
   };
 
   Simditor.Toolbar.addButton(FontScaleButton);

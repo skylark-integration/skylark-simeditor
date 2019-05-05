@@ -33,17 +33,13 @@ define([
 
   ItalicButton.prototype._activeStatus = function() {
     var active;
-    active = document.queryCommandState('italic') === true;
+    active = this.editor.editable.isActive('italic');
     this.setActive(active);
     return this.active;
   };
 
   ItalicButton.prototype.command = function() {
-    document.execCommand('italic');
-    if (!this.editor.editable.util.support.oninput) {
-      this.editor.trigger('valuechanged');
-    }
-    return $(document).trigger('selectionchange');
+    return this.editor.editable.italic();
   };
 
   Simditor.Toolbar.addButton(ItalicButton); 

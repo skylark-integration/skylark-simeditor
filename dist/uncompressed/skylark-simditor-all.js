@@ -159,8 +159,7 @@ define([], function () {
             placeholder: '',
             defaultImage: 'images/image.png',
             params: {},
-            upload: false,
-            indentWidth: 40
+            upload: false
         };
         Simditor.prototype._tpl = '<div class="simditor">\n  <div class="simditor-wrapper">\n    <div class="simditor-placeholder"></div>\n    <div class="simditor-body" contenteditable="true">\n    </div>\n  </div>\n</div>';
         Simditor.prototype._render = function () {
@@ -10275,8 +10274,9 @@ define('skylark-simditor/buttons/AlignmentButton',[
   "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
-  "../Button"
-],function($,Toolbar,Simditor,Button){ 
+  "../Button",
+  "../i18n"
+],function($,Toolbar,Simditor,Button,i18n){ 
    var AlignmentButton = Button.inherit({
 
     });
@@ -10292,17 +10292,17 @@ define('skylark-simditor/buttons/AlignmentButton',[
     this.menu = [
       {
         name: 'left',
-        text: this._t('alignLeft'),
+        text: i18n.translate('alignLeft'),
         icon: 'align-left',
         param: 'left'
       }, {
         name: 'center',
-        text: this._t('alignCenter'),
+        text: i18n.translate('alignCenter'),
         icon: 'align-center',
         param: 'center'
       }, {
         name: 'right',
-        text: this._t('alignRight'),
+        text: i18n.translate('alignRight'),
         icon: 'align-right',
         param: 'right'
       }
@@ -10331,25 +10331,18 @@ define('skylark-simditor/buttons/AlignmentButton',[
   };
 
   AlignmentButton.prototype._status = function() {
-    this.nodes = this.editor.editable.selection.nodes().filter(this.htmlTag);
-    if (this.nodes.length < 1) {
+    var value = this.editor.editable.status("alignment",this.htmlTag);
+    if (value) {
+      this.setDisabled(false);
+      return this.setActive(true, value);
+    } else {
       this.setDisabled(true);
       return this.setActive(false);
-    } else {
-      this.setDisabled(false);
-      return this.setActive(true, this.nodes.first().css('text-align'));
-    }
+    }    
   };
 
   AlignmentButton.prototype.command = function(align) {
-    if (align !== 'left' && align !== 'center' && align !== 'right') {
-      throw new Error("simditor alignment button: invalid align " + align);
-    }
-    this.nodes.css({
-      'text-align': align === 'left' ? '' : align
-    });
-    this.editor.trigger('valuechanged');
-    return this.editor.editable.inputManager.throttledSelectionChanged();
+    return this.editor.editable.alignment(align,this.htmlTag);
   };
 
   Simditor.Toolbar.addButton(AlignmentButton);
@@ -10367,8 +10360,6 @@ define('skylark-simditor/buttons/BlockquoteButton',[
 
    });
 
-
-
   BlockquoteButton.prototype.name = 'blockquote';
 
   BlockquoteButton.prototype.icon = 'quote-left';
@@ -10378,41 +10369,7 @@ define('skylark-simditor/buttons/BlockquoteButton',[
   BlockquoteButton.prototype.disableTag = 'pre, table';
 
   BlockquoteButton.prototype.command = function() {
-    var $rootNodes, clearCache, nodeCache;
-    $rootNodes = this.editor.editable.selection.rootNodes();
-    $rootNodes = $rootNodes.filter(function(i, node) {
-      return !$(node).parent().is('blockquote');
-    });
-    this.editor.editable.selection.save();
-    nodeCache = [];
-    clearCache = (function(_this) {
-      return function() {
-        if (nodeCache.length > 0) {
-          $("<" + _this.htmlTag + "/>").insertBefore(nodeCache[0]).append(nodeCache);
-          return nodeCache.length = 0;
-        }
-      };
-    })(this);
-    $rootNodes.each((function(_this) {
-      return function(i, node) {
-        var $node;
-        $node = $(node);
-        if (!$node.parent().is(_this.editor.body)) {
-          return;
-        }
-        if ($node.is(_this.htmlTag)) {
-          clearCache();
-          return $node.children().unwrap();
-        } else if ($node.is(_this.disableTag) || _this.editor.editable.util.isDecoratedNode($node)) {
-          return clearCache();
-        } else {
-          return nodeCache.push(node);
-        }
-      };
-    })(this));
-    clearCache();
-    this.editor.editable.selection.restore();
-    return this.editor.trigger('valuechanged');
+    return this.editor.editable.blockquote(this.htmlTag,this.disableTag);
   };
 
   Simditor.Toolbar.addButton(BlockquoteButton); 
@@ -10453,17 +10410,13 @@ define('skylark-simditor/buttons/BoldButton',[
 
     BoldButton.prototype._activeStatus = function() {
       var active;
-      active = document.queryCommandState('bold') === true;
+      active = this.editor.editable.isActive('bold');
       this.setActive(active);
       return this.active;
     };
 
     BoldButton.prototype.command = function() {
-      document.execCommand('bold');
-      if (!this.editor.editable.util.support.oninput) {
-        this.editor.trigger('valuechanged');
-      }
-      return $(document).trigger('selectionchange');
+      return this.editor.editable.bold();
     };
 
 
@@ -10704,57 +10657,11 @@ define('skylark-simditor/buttons/CodeButton',[
   };
 
   CodeButton.prototype._blockCommand = function() {
-    var $rootNodes, clearCache, nodeCache, resultNodes;
-    $rootNodes = this.editor.editable.selection.rootNodes();
-    nodeCache = [];
-    resultNodes = [];
-    clearCache = (function(_this) {
-      return function() {
-        var $pre;
-        if (!(nodeCache.length > 0)) {
-          return;
-        }
-        $pre = $("<" + _this.htmlTag + "/>").insertBefore(nodeCache[0]).text(_this.editor.editable.formatter.clearHtml(nodeCache));
-        resultNodes.push($pre[0]);
-        return nodeCache.length = 0;
-      };
-    })(this);
-    $rootNodes.each((function(_this) {
-      return function(i, node) {
-        var $node, $p;
-        $node = $(node);
-        if ($node.is(_this.htmlTag)) {
-          clearCache();
-          $p = $('<p/>').append($node.html().replace('\n', '<br/>')).replaceAll($node);
-          return resultNodes.push($p[0]);
-        } else if ($node.is(_this.disableTag) || _this.editor.editable.util.isDecoratedNode($node) || $node.is('blockquote')) {
-          return clearCache();
-        } else {
-          return nodeCache.push(node);
-        }
-      };
-    })(this));
-    clearCache();
-    this.editor.editable.selection.setRangeAtEndOf($(resultNodes).last());
-    return this.editor.trigger('valuechanged');
+    return this.editor.editable.blockCode(this.htmlTag,this.disableTag);
   };
 
   CodeButton.prototype._inlineCommand = function() {
-    var $code, $contents, range;
-    range = this.editor.editable.selection.range();
-    if (this.active) {
-      range.selectNodeContents(this.node[0]);
-      this.editor.editable.selection.save(range);
-      this.node.contents().unwrap();
-      this.editor.editable.selection.restore();
-    } else {
-      $contents = $(range.extractContents());
-      $code = $("<" + this.htmlTag + "/>").append($contents.contents());
-      range.insertNode($code[0]);
-      range.selectNodeContents($code[0]);
-      this.editor.editable.selection.range(range);
-    }
-    return this.editor.trigger('valuechanged');
+    return this.editor.editable.inlineCode(this.active);
   };
 
   Simditor.Toolbar.addButton(CodeButton);    
@@ -10766,8 +10673,9 @@ define('skylark-simditor/buttons/ColorButton',[
   "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
-  "../Button"
-],function($,Toolbar,Simditor,Button){ 
+  "../Button",
+  "../i18n"
+],function($,Toolbar,Simditor,Button,i18n){ 
   
 
    var ColorButton = Button.inherit({
@@ -10813,19 +10721,8 @@ define('skylark-simditor/buttons/ColorButton',[
         if (!hex) {
           return;
         }
-        range = _this.editor.editable.selection.range();
-        if (!$link.hasClass('font-color-default') && range.collapsed) {
-          textNode = document.createTextNode(_this._t('coloredText'));
-          range.insertNode(textNode);
-          range.selectNodeContents(textNode);
-        }
-        _this.editor.editable.selection.range(range);
-        document.execCommand('styleWithCSS', false, true);
-        document.execCommand('foreColor', false, hex);
-        document.execCommand('styleWithCSS', false, false);
-        if (!_this.editor.editable.util.support.oninput) {
-          return _this.editor.trigger('valuechanged');
-        }
+
+        return _this.editor.editable.fontColor(hex,$link.hasClass('font-color-default'),i18n.translate('coloredText'));
       };
     })(this));
   };
@@ -10880,12 +10777,6 @@ define('skylark-simditor/buttons/FontScaleButton',[
 
   FontScaleButton.prototype.disableTag = 'pre, h1, h2, h3, h4, h5';
 
-  FontScaleButton.prototype.sizeMap = {
-    'x-large': '1.5em',
-    'large': '1.25em',
-    'small': '.75em',
-    'x-small': '.5em'
-  };
 
   FontScaleButton.prototype._init = function() {
     this.menu = [
@@ -10927,40 +10818,7 @@ define('skylark-simditor/buttons/FontScaleButton',[
   };
 
   FontScaleButton.prototype.command = function(param) {
-    var $scales, containerNode, range;
-    range = this.editor.editable.selection.range();
-    if (range.collapsed) {
-      return;
-    }
-    this.editor.editable.selection.range(range);
-    document.execCommand('styleWithCSS', false, true);
-    document.execCommand('fontSize', false, param);
-    document.execCommand('styleWithCSS', false, false);
-    this.editor.editable.selection.reset();
-    this.editor.editable.selection.range();
-    containerNode = this.editor.editable.selection.containerNode();
-    if (containerNode[0].nodeType === Node.TEXT_NODE) {
-      $scales = containerNode.closest('span[style*="font-size"]');
-    } else {
-      $scales = containerNode.find('span[style*="font-size"]');
-    }
-    $scales.each((function(_this) {
-      return function(i, n) {
-        var $span, size;
-        $span = $(n);
-        size = n.style.fontSize;
-        if (/large|x-large|small|x-small/.test(size)) {
-          return $span.css('fontSize', _this.sizeMap[size]);
-        } else if (size === 'medium') {
-          if ($span[0].style.length > 1) {
-            return $span.css('fontSize', '');
-          } else {
-            return $span.replaceWith($span.contents());
-          }
-        }
-      };
-    })(this));
-    return this.editor.trigger('valuechanged');
+    return this.editor.editable.fontScale(param);
   };
 
   Simditor.Toolbar.addButton(FontScaleButton);
@@ -10990,22 +10848,7 @@ define('skylark-simditor/buttons/HrButton',[
   HrButton.prototype._status = function() {};
 
   HrButton.prototype.command = function() {
-    var $hr, $newBlock, $nextBlock, $rootBlock;
-    $rootBlock = this.editor.editable.selection.rootNodes().first();
-    $nextBlock = $rootBlock.next();
-    if ($nextBlock.length > 0) {
-      this.editor.editable.selection.save();
-    } else {
-      $newBlock = $('<p/>').append(this.editor.editable.util.phBr);
-    }
-    $hr = $('<hr/>').insertAfter($rootBlock);
-    if ($newBlock) {
-      $newBlock.insertAfter($hr);
-      this.editor.editable.selection.setRangeAtStartOf($newBlock);
-    } else {
-      this.editor.editable.selection.restore();
-    }
-    return this.editor.trigger('valuechanged');
+    return this.editor.editable.hr();
   };
 
   Simditor.Toolbar.addButton(HrButton);
@@ -11711,7 +11554,7 @@ define('skylark-simditor/buttons/IndentButton',[
   IndentButton.prototype._status = function() {};
 
   IndentButton.prototype.command = function() {
-    return this.editor.editable.indentation.indent();
+    return this.editor.editable.indent();
   };
 
   Simditor.Toolbar.addButton(IndentButton);	
@@ -11753,17 +11596,13 @@ define('skylark-simditor/buttons/ItalicButton',[
 
   ItalicButton.prototype._activeStatus = function() {
     var active;
-    active = document.queryCommandState('italic') === true;
+    active = this.editor.editable.isActive('italic');
     this.setActive(active);
     return this.active;
   };
 
   ItalicButton.prototype.command = function() {
-    document.execCommand('italic');
-    if (!this.editor.editable.util.support.oninput) {
-      this.editor.trigger('valuechanged');
-    }
-    return $(document).trigger('selectionchange');
+    return this.editor.editable.italic();
   };
 
   Simditor.Toolbar.addButton(ItalicButton); 
@@ -11859,8 +11698,9 @@ define('skylark-simditor/buttons/LinkButton',[
   "../Toolbar",
   "../Simditor",
   "../Button",
+  "../i18n",
   "./LinkPopover"
-],function($,Toolbar,Simditor,Button,LinkPopover){ 
+],function($,Toolbar,Simditor,Button,i18n,LinkPopover){ 
   
 
   var LinkButton = Button.inherit({
@@ -11895,27 +11735,7 @@ define('skylark-simditor/buttons/LinkButton',[
   };
 
   LinkButton.prototype.command = function() {
-    var $contents, $link, $newBlock, linkText, range, txtNode;
-    range = this.editor.editable.selection.range();
     if (this.active) {
-      txtNode = document.createTextNode(this.node.text());
-      this.node.replaceWith(txtNode);
-      range.selectNode(txtNode);
-    } else {
-      $contents = $(range.extractContents());
-      linkText = this.editor.editable.formatter.clearHtml($contents.contents(), false);
-      $link = $('<a/>', {
-        href: '',
-        target: '_blank',
-        text: linkText || this._t('linkText')
-      });
-      if (this.editor.editable.selection.blockNodes().length > 0) {
-        range.insertNode($link[0]);
-      } else {
-        $newBlock = $('<p/>').append($link);
-        range.insertNode($newBlock[0]);
-      }
-      range.selectNodeContents($link[0]);
       this.popover.one('popovershow', (function(_this) {
         return function() {
           if (linkText) {
@@ -11927,9 +11747,11 @@ define('skylark-simditor/buttons/LinkButton',[
           }
         };
       })(this));
+
     }
-    this.editor.editable.selection.range(range);
-    return this.editor.trigger('valuechanged');
+
+    return this.editor.editable.link(this.active,i18n.translate('linkText'));
+
   };
 
   Simditor.Toolbar.addButton(LinkButton);
@@ -11954,40 +11776,7 @@ define('skylark-simditor/buttons/ListButton',[
     ListButton.prototype.disableTag = 'pre, table';
 
     ListButton.prototype.command = function(param) {
-      var $list, $rootNodes, anotherType;
-      $rootNodes = this.editor.editable.selection.blockNodes();
-      anotherType = this.type === 'ul' ? 'ol' : 'ul';
-      this.editor.editable.selection.save();
-      $list = null;
-      $rootNodes.each((function(_this) {
-        return function(i, node) {
-          var $node;
-          $node = $(node);
-          if ($node.is('blockquote, li') || $node.is(_this.disableTag) || _this.editor.editable.util.isDecoratedNode($node) || !noder.contains(document, node)) {
-            return;
-          }
-          if ($node.is(_this.type)) {
-            $node.children('li').each(function(i, li) {
-              var $childList, $li;
-              $li = $(li);
-              $childList = $li.children('ul, ol').insertAfter($node);
-              return $('<p/>').append($(li).html() || _this.editor.editable.util.phBr).insertBefore($node);
-            });
-            return $node.remove();
-          } else if ($node.is(anotherType)) {
-            return $('<' + _this.type + '/>').append($node.contents()).replaceAll($node);
-          } else if ($list && $node.prev().is($list)) {
-            $('<li/>').append($node.html() || _this.editor.editable.util.phBr).appendTo($list);
-            return $node.remove();
-          } else {
-            $list = $("<" + _this.type + "><li></li></" + _this.type + ">");
-            $list.find('li').append($node.html() || _this.editor.editable.util.phBr);
-            return $list.replaceAll($node);
-          }
-        };
-      })(this));
-      this.editor.editable.selection.restore();
-      return this.editor.trigger('valuechanged');
+      return this.editor.editable.list(this.type,param,this.disableTag);
     };
 
     return ListButton;
@@ -12054,7 +11843,7 @@ define('skylark-simditor/buttons/OutdentButton',[
   OutdentButton.prototype._status = function() {};
 
   OutdentButton.prototype.command = function() {
-    return this.editor.editable.indentation.indent(true);
+    return this.editor.editable.outdent();
   };
 
   Simditor.Toolbar.addButton(OutdentButton);	
@@ -12084,17 +11873,13 @@ define('skylark-simditor/buttons/StrikethroughButton',[
 
   StrikethroughButton.prototype._activeStatus = function() {
     var active;
-    active = document.queryCommandState('strikethrough') === true;
+    active = this.editor.editable.isActive('strikethrough');
     this.setActive(active);
     return this.active;
   };
 
   StrikethroughButton.prototype.command = function() {
-    document.execCommand('strikethrough');
-    if (!this.editor.editable.util.support.oninput) {
-      this.editor.trigger('valuechanged');
-    }
-    return $(document).trigger('selectionchange');
+    return this.editor.editable.strikethrough();
   };
 
   Simditor.Toolbar.addButton(StrikethroughButton);	
@@ -12843,21 +12628,7 @@ define('skylark-simditor/buttons/TitleButton',[
   };
 
   TitleButton.prototype.command = function(param) {
-    var $rootNodes;
-    $rootNodes = this.editor.editable.selection.rootNodes();
-    this.editor.editable.selection.save();
-    $rootNodes.each((function(_this) {
-      return function(i, node) {
-        var $node;
-        $node = $(node);
-        if ($node.is('blockquote') || $node.is(param) || $node.is(_this.disableTag) || _this.editor.editable.util.isDecoratedNode($node)) {
-          return;
-        }
-        return $('<' + param + '/>').append($node.contents()).replaceAll($node);
-      };
-    })(this));
-    this.editor.editable.selection.restore();
-    return this.editor.trigger('valuechanged');
+    return this.editor.editable.title(param,this.disableTag);
   };
 
   Simditor.Toolbar.addButton(TitleButton);
@@ -12898,17 +12669,13 @@ define('skylark-simditor/buttons/UnderlineButton',[
 
   UnderlineButton.prototype._activeStatus = function() {
     var active;
-    active = document.queryCommandState('underline') === true;
+    active = this.editor.editable.isActive('underline');
     this.setActive(active);
     return this.active;
   };
 
   UnderlineButton.prototype.command = function() {
-    document.execCommand('underline');
-    if (!this.editor.editable.util.support.oninput) {
-      this.editor.trigger('valuechanged');
-    }
-    return $(document).trigger('selectionchange');
+    return this.editor.editable.underline();
   };
 
 

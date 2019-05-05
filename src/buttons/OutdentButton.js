@@ -23,7 +23,7 @@ define([
   OutdentButton.prototype._status = function() {};
 
   OutdentButton.prototype.command = function() {
-    return this.editor.editable.indentation.indent(true);
+    return this.editor.editable.outdent();
   };
 
   Simditor.Toolbar.addButton(OutdentButton);	

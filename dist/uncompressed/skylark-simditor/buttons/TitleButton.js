@@ -58,21 +58,7 @@ define([
   };
 
   TitleButton.prototype.command = function(param) {
-    var $rootNodes;
-    $rootNodes = this.editor.editable.selection.rootNodes();
-    this.editor.editable.selection.save();
-    $rootNodes.each((function(_this) {
-      return function(i, node) {
-        var $node;
-        $node = $(node);
-        if ($node.is('blockquote') || $node.is(param) || $node.is(_this.disableTag) || _this.editor.editable.util.isDecoratedNode($node)) {
-          return;
-        }
-        return $('<' + param + '/>').append($node.contents()).replaceAll($node);
-      };
-    })(this));
-    this.editor.editable.selection.restore();
-    return this.editor.trigger('valuechanged');
+    return this.editor.editable.title(param,this.disableTag);
   };
 
   Simditor.Toolbar.addButton(TitleButton);

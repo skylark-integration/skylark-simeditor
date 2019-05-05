@@ -2,8 +2,9 @@ define([
   "skylark-utils-dom/query",
   "../Toolbar",
   "../Simditor",
-  "../Button"
-],function($,Toolbar,Simditor,Button){ 
+  "../Button",
+  "../i18n"
+],function($,Toolbar,Simditor,Button,i18n){ 
    var AlignmentButton = Button.inherit({
 
     });
@@ -19,17 +20,17 @@ define([
     this.menu = [
       {
         name: 'left',
-        text: this._t('alignLeft'),
+        text: i18n.translate('alignLeft'),
         icon: 'align-left',
         param: 'left'
       }, {
         name: 'center',
-        text: this._t('alignCenter'),
+        text: i18n.translate('alignCenter'),
         icon: 'align-center',
         param: 'center'
       }, {
         name: 'right',
-        text: this._t('alignRight'),
+        text: i18n.translate('alignRight'),
         icon: 'align-right',
         param: 'right'
       }
@@ -58,25 +59,18 @@ define([
   };
 
   AlignmentButton.prototype._status = function() {
-    this.nodes = this.editor.editable.selection.nodes().filter(this.htmlTag);
-    if (this.nodes.length < 1) {
+    var value = this.editor.editable.status("alignment",this.htmlTag);
+    if (value) {
+      this.setDisabled(false);
+      return this.setActive(true, value);
+    } else {
       this.setDisabled(true);
       return this.setActive(false);
-    } else {
-      this.setDisabled(false);
-      return this.setActive(true, this.nodes.first().css('text-align'));
-    }
+    }    
   };
 
   AlignmentButton.prototype.command = function(align) {
-    if (align !== 'left' && align !== 'center' && align !== 'right') {
-      throw new Error("simditor alignment button: invalid align " + align);
-    }
-    this.nodes.css({
-      'text-align': align === 'left' ? '' : align
-    });
-    this.editor.trigger('valuechanged');
-    return this.editor.editable.inputManager.throttledSelectionChanged();
+    return this.editor.editable.alignment(align,this.htmlTag);
   };
 
   Simditor.Toolbar.addButton(AlignmentButton);

@@ -3,8 +3,9 @@ define([
   "../Toolbar",
   "../Simditor",
   "../Button",
+  "../i18n",
   "./LinkPopover"
-],function($,Toolbar,Simditor,Button,LinkPopover){ 
+],function($,Toolbar,Simditor,Button,i18n,LinkPopover){ 
   
 
   var LinkButton = Button.inherit({
@@ -39,27 +40,7 @@ define([
   };
 
   LinkButton.prototype.command = function() {
-    var $contents, $link, $newBlock, linkText, range, txtNode;
-    range = this.editor.editable.selection.range();
     if (this.active) {
-      txtNode = document.createTextNode(this.node.text());
-      this.node.replaceWith(txtNode);
-      range.selectNode(txtNode);
-    } else {
-      $contents = $(range.extractContents());
-      linkText = this.editor.editable.formatter.clearHtml($contents.contents(), false);
-      $link = $('<a/>', {
-        href: '',
-        target: '_blank',
-        text: linkText || this._t('linkText')
-      });
-      if (this.editor.editable.selection.blockNodes().length > 0) {
-        range.insertNode($link[0]);
-      } else {
-        $newBlock = $('<p/>').append($link);
-        range.insertNode($newBlock[0]);
-      }
-      range.selectNodeContents($link[0]);
       this.popover.one('popovershow', (function(_this) {
         return function() {
           if (linkText) {
@@ -71,9 +52,11 @@ define([
           }
         };
       })(this));
+
     }
-    this.editor.editable.selection.range(range);
-    return this.editor.trigger('valuechanged');
+
+    return this.editor.editable.link(this.active,i18n.translate('linkText'));
+
   };
 
   Simditor.Toolbar.addButton(LinkButton);

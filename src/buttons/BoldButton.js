@@ -31,17 +31,13 @@ define([
 
     BoldButton.prototype._activeStatus = function() {
       var active;
-      active = document.queryCommandState('bold') === true;
+      active = this.editor.editable.isActive('bold');
       this.setActive(active);
       return this.active;
     };
 
     BoldButton.prototype.command = function() {
-      document.execCommand('bold');
-      if (!this.editor.editable.util.support.oninput) {
-        this.editor.trigger('valuechanged');
-      }
-      return $(document).trigger('selectionchange');
+      return this.editor.editable.bold();
     };
 
 

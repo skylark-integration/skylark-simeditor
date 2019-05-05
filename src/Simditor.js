@@ -102,8 +102,7 @@ define([
     placeholder: '',
     defaultImage: 'images/image.png',
     params: {},
-    upload: false,
-    indentWidth: 40
+    upload: false
   };
 
 

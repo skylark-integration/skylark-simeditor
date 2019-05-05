@@ -71,8 +71,7 @@ define([], function () {
             placeholder: '',
             defaultImage: 'images/image.png',
             params: {},
-            upload: false,
-            indentWidth: 40
+            upload: false
         };
         Simditor.prototype._tpl = '<div class="simditor">\n  <div class="simditor-wrapper">\n    <div class="simditor-placeholder"></div>\n    <div class="simditor-body" contenteditable="true">\n    </div>\n  </div>\n</div>';
         Simditor.prototype._render = function () {

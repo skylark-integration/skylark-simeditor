@@ -24,7 +24,7 @@ define([
   IndentButton.prototype._status = function() {};
 
   IndentButton.prototype.command = function() {
-    return this.editor.editable.indentation.indent();
+    return this.editor.editable.indent();
   };
 
   Simditor.Toolbar.addButton(IndentButton);	
