@@ -5,6 +5,7 @@ require.config({
   ,packages : [
      { name: "skylark-langx", location: "../node_modules/skylark-langx/dist/uncompressed/skylark-langx" },
      { name: "skylark-utils-dom", location: "../node_modules/skylark-utils-dom/dist/uncompressed/skylark-utils-dom"},
+     { name: "skylark-ui-contents", location: "../node_modules/skylark-ui-contents/dist/uncompressed/skylark-ui-contents"},
      { name: "skylark-simeditor", location: "../src" }
   ],
 });

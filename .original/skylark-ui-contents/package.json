@@ -1,0 +1,60 @@
+{
+  "_from": "git+https://github.com/skylarkui/skylark-ui-contents.git#master",
+  "_id": "skylark-ui-contents@0.9.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/skylark-ui-contents",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "git+https://github.com/skylarkui/skylark-ui-contents.git#master",
+    "rawSpec": "git+https://github.com/skylarkui/skylark-ui-contents.git#master",
+    "saveSpec": "git+https://github.com/skylarkui/skylark-ui-contents.git#master",
+    "fetchSpec": "https://github.com/skylarkui/skylark-ui-contents.git",
+    "gitCommittish": "master"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "git+https://github.com/skylarkui/skylark-ui-contents.git#81d64984f71b9b06fa4aed6fe3f8382079c8a1d0",
+  "_spec": "git+https://github.com/skylarkui/skylark-ui-contents.git#master",
+  "_where": "C:\\Studio\\studio2\\21_SKY\\skylarkjs\\intg\\skylark-simeditor",
+  "author": {
+    "name": "Hudaokeji Co.,Ltd"
+  },
+  "bugs": {
+    "url": "https://github.com/skylarkui/skylark-ui-contents/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "A dom plugin for  editing  the content of html element.",
+  "devDependencies": {
+    "skylark-langx": "git+https://github.com/skylarklangx/skylark-langx.git#master",
+    "skylark-utils-dom": "git+https://github.com/skylarkutils/skylark-utils-dom.git#master"
+  },
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "homepage": "http://www.skylarkjs.org",
+  "keywords": [
+    "skylark",
+    "skylarkjs",
+    "javacript",
+    "library",
+    "utility",
+    "html5"
+  ],
+  "license": "MIT",
+  "main": "-",
+  "name": "skylark-ui-contents",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skylarkui/skylark-ui-contents.git"
+  },
+  "scripts": {
+    "build": "sbundle build .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "0.9.0"
+}

@@ -93,23 +93,24 @@ define([], function () {
     define([
         'skylark-langx/langx',
         'skylark-utils-dom/query',
-        './hotkeys',
-        './uploader',
-        './Util',
-        './InputManager',
-        './Selection',
-        './UndoManager',
-        './Keystroke',
-        './Formatter',
+        'skylark-ui-contents/hotkeys',
+        'skylark-ui-contents/Util',
+        'skylark-ui-contents/InputManager',
+        'skylark-ui-contents/Selection',
+        'skylark-ui-contents/UndoManager',
+        'skylark-ui-contents/Keystroke',
+        'skylark-ui-contents/Formatter',
+        'skylark-ui-contents/Indentation',
+        'skylark-ui-contents/Clipboard',
         './Toolbar',
-        './Indentation',
-        './Clipboard',
+        './uploader',
         './i18n'
-    ], function (langx, $, hotkeys, uploader, Util, InputManager, Selection, UndoManager, Keystroke, Formatter, Toolbar, Indentation, Clipboard, i18n) {
+    ], function (langx, $, hotkeys, Util, InputManager, Selection, UndoManager, Keystroke, Formatter, Indentation, Clipboard, Toolbar, uploader, i18n) {
         var Simditor = langx.Evented.inherit({
             init: function (opts) {
                 this.opts = langx.extend({}, this.opts, opts);
-                this.util = new Util(this);
+                var pluginOpts = { classPrefix: 'simditor-' };
+                this.util = new Util(this, pluginOpts);
                 var e, editor, uploadOpts;
                 this.textarea = $(this.opts.textarea);
                 this.opts.placeholder = this.opts.placeholder || this.textarea.attr('placeholder');
@@ -133,19 +134,19 @@ define([], function () {
                     uploadOpts = typeof this.opts.upload === 'object' ? this.opts.upload : {};
                     this.uploader = uploader(uploadOpts);
                 }
-                this.inputManager = new InputManager(this);
-                this.selection = new Selection(this);
-                this.undoManager = new UndoManager(this);
-                this.keystroke = new Keystroke(this);
-                this.formatter = new Formatter(this);
+                this.inputManager = new InputManager(this, pluginOpts);
+                this.selection = new Selection(this, pluginOpts);
+                this.undoManager = new UndoManager(this, pluginOpts);
+                this.keystroke = new Keystroke(this, pluginOpts);
+                this.formatter = new Formatter(this, pluginOpts);
                 this.toolbar = new Toolbar(this, {
                     toolbar: this.opts.toolbar,
                     toolbarFloat: this.opts.toolbarFloat,
                     toolbarHidden: this.opts.toolbarHidden,
                     toolbarFloatOffset: this.opts.toolbarFloatOffset
                 });
-                this.indentation = new Indentation(this);
-                this.clipboard = new Clipboard(this);
+                this.indentation = new Indentation(this, pluginOpts);
+                this.clipboard = new Clipboard(this, pluginOpts);
                 var self = this;
                 if (this.opts.placeholder) {
                     this.on('valuechanged', function () {
